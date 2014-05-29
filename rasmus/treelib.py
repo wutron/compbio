@@ -535,6 +535,7 @@ class Tree (object):
 
     #=======================================================================
     # input and output
+
     def read_data(self, node, data, namefunc=lambda name: name):
         """Default data reader: reads optional bootstrap and branch length"""
 
@@ -1209,10 +1210,15 @@ def assert_tree(tree):
 def is_binary(tree):
     """Returns True if tree is binary"""
 
+    rooted = is_rooted(tree)
     for node in tree:
         if not node.is_leaf():
-            if len(node.children) != 2:
-                return False
+            if (not node.parent) and (not rooted):
+                if len(node.children) != 3:
+                    return False
+            else:
+                if len(node.children) != 2:
+                    return False
     return True
 
 
@@ -1593,7 +1599,6 @@ def set_tree_topology(tree, tree2):
 # Rerooting functions
 #
 
-
 def is_rooted(tree):
     """Returns True if tree is rooted"""
     return len(tree.root.children) <= 2
@@ -1619,7 +1624,6 @@ def unroot(tree, newCopy=True):
         nodes[0].parent = None
 
         # replace root
-        del tree.root.data["tree"]
         del tree.nodes[tree.root.name]
         tree.root = nodes[0]
     return tree
@@ -1762,6 +1766,7 @@ def midpoint_root(tree):
     raise AssertionError("Could not find branch with midpoint")
 
 
+
 #=============================================================================
 # ages (previous known as timestamps)
 #
@@ -1792,7 +1797,7 @@ def get_tree_ages(tree, root=None, leaves=None, times=None, esp=0.001):
                 t = walk(child)
 
                 # ensure branch lengths are ultrametrix
-                if t2 is not None and esp is not None:
+                if (t2 is not None) and (esp is not None):
                     assert abs(t - t2)/t < esp, (node.name, t, t2)
                 t2 = t
 
@@ -2226,6 +2231,10 @@ def layout_tree_vertical(layout, offset=None, root=0, leaves=None,
 
 def tree_color_map(leafmap=lambda x: (0, 0, 0)):
     """Returns a simple color mixing colormap"""
+    def null_func(tree):
+        pass
+    if leafmap is None:
+        return null_func
 
     def func(tree):
         def walk(node):

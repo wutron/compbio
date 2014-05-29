@@ -12,6 +12,9 @@ o = optparse.OptionParser()
 o.add_option("--no-famid", dest="nofamid", action="store_true",
              help="if True, family is not specified")
 o.add_option("--subset-genes", dest="subset_genes", action="store_true")
+o.add_option("--no-species-branch", dest="no_species_branch",
+             action="store_true", default=False,
+             help="ignore reconciled species")
 conf, args = o.parse_args()
 
 
@@ -24,7 +27,6 @@ actual_rel_file, pred_rel_file = args
 actual_rel = util.read_delim(actual_rel_file)
 pred_rel = util.read_delim(pred_rel_file)
 
-
 # remove famid column if it is not given
 if conf.nofamid:
     for row in actual_rel:
@@ -32,21 +34,35 @@ if conf.nofamid:
     for row in pred_rel:
         row[0] = ""
 
+# ignore species branch?
+if conf.no_species_branch:
+    get_vals_dup = lambda x: x[:4]     # ignore reconciled species
+    def get_vals_loss(x):       # ignore species in which gene is lost
+        key = tuple(x[:3])      # (but keep track of multiple losses per gene tree branch)
+        loss_dct[key] += 1
+        return key + (loss_dct[key],)
+else:
+    get_vals_dup = get_vals_loss = lambda x: x
+
+#=============================================================================
+# compare predicted to true
 
 # get genes and trees that are in predicted dataset
 pred_genes = set(x[2] for x in pred_rel if x[1] == "gene")
 pred_trees = set(x[0] for x in pred_rel)
 
 # dups
-actual_dups = set(tuple(x) for x in actual_rel if x[1] == "dup"
+actual_dups = set(tuple(get_vals_dup(x)) for x in actual_rel if x[1] == "dup"
                   if x[0] in pred_trees)
-pred_dups = set(tuple(x) for x in pred_rel if x[1] == "dup")
+pred_dups = set(tuple(get_vals_dup(x)) for x in pred_rel if x[1] == "dup")
 dup_tp = len(actual_dups & pred_dups)
 
 # losses
-actual_loss = set(tuple(x) for x in actual_rel if x[1] == "loss"
+if conf.no_species_branch: loss_dct = collections.defaultdict(int)
+actual_loss = set(tuple(get_vals_loss(x)) for x in actual_rel if x[1] == "loss"
                   if x[0] in pred_trees)
-pred_loss = set(tuple(x) for x in pred_rel if x[1] == "loss")
+if conf.no_species_branch: loss_dct = collections.defaultdict(int)
+pred_loss = set(tuple(get_vals_loss(x)) for x in pred_rel if x[1] == "loss")
 loss_tp = len(actual_loss & pred_loss)
 
 # orthologs

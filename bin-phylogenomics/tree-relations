@@ -110,11 +110,11 @@ for filename in filenames:
             raise Exception("Cannot use --fix-ils if --reconext is specified")
 
         try:
-            recon, events = phylo.read_recon_events(util.replace_ext(
-                filename, conf.treeext, conf.reconext), tree, stree)
+            reconfile = util.replace_ext(filename, conf.treeext, conf.reconext)
+            recon, events = phylo.read_recon_events(reconfile, tree, stree)
         except:
-            print >>sys.stderr, filename
-            raise
+            print >>sys.stderr, "error:", filename
+            continue
     else:
         # use MPR to build reconciliation and events
         recon = phylo.reconcile(tree, stree, gene2species)

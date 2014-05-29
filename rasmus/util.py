@@ -29,7 +29,7 @@ from collections import defaultdict
 
 # Note: I had trouble using 1e1000 directly, because bytecode had trouble
 # representing infinity (possibly)
-INF = float("1e1000")
+INF = float('inf')
 
 
 class Bundle (dict):
@@ -801,7 +801,6 @@ def argmin(lst, key=lambda x: x):
 #=============================================================================
 # math functions
 
-
 def prod(lst):
     """Computes the product of a list of numbers."""
     p = 1.0
@@ -828,6 +827,7 @@ def minall(iterable, keyfunc=None, minfunc=None):
             items.append(keyfunc(it))
     assert(len(items) > 0)
     return items, minval
+
 
 def maxall(iterable, keyfunc=None, maxfunc=None):
     """Returns (1) all items with maximum value and (2) the maximum value"""

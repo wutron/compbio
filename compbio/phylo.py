@@ -1566,8 +1566,8 @@ def perform_spr(tree, subtree, newpos):
         2. e (newpos) is not root, a, descendant of a, c (parent of a), or
            b (sibling of a)
         3. tree is binary
+    """
 
-"""
     # TODO: check requirements
 
     a = subtree
