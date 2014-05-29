@@ -1078,12 +1078,17 @@ def assert_tree(tree):
 
 
 def is_binary(tree):
-    """Returns True if tree is binary"""
+    """Returns True if tree is (full and) binary"""
     
+    rooted = is_rooted(tree)
     for node in tree:
         if not node.is_leaf():
-            if len(node.children) != 2:
-                return False
+            if (not node.parent) and (not rooted):
+                if len(node.children) != 3:
+                    return False
+            else:
+                if len(node.children) != 2:
+                    return False
     return True
 
 

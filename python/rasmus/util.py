@@ -30,8 +30,8 @@ from collections import defaultdict
 
 # Note: I had trouble using 1e1000 directly, because bytecode had trouble
 # representing infinity (possibly)
-INF = float("1e1000") 
-   
+INF = float('inf')
+ 
 
 
 class Bundle (dict):
