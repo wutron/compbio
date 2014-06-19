@@ -824,7 +824,8 @@ def write_newick_node(tree, node, out=sys.stdout,
 
     # default data writer
     if write_data is None:
-        write_data = tree.write_data
+        writeDist = any(node.dist != 0 for node in tree)
+        write_data = lambda node: tree.write_data(node, writeDist=writeDist, namefunc=namefunc)
 
     if not oneline:
         out.write(" " * depth)
