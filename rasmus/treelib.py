@@ -393,11 +393,12 @@ class Tree (object):
 
     def rename(self, oldname, newname):
         """Rename a node in the tree"""
-        assert newname not in self.nodes, newname
-        node = self.nodes[oldname]
-        del self.nodes[oldname]
-        self.nodes[newname] = node
-        node.name = newname
+        if oldname != newname:
+            assert newname not in self.nodes, newname
+            node = self.nodes[oldname]
+            del self.nodes[oldname]
+            self.nodes[newname] = node
+            node.name = newname
 
     def new_name(self):
         """Returns a new node name that should be unique in the tree"""
