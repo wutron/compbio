@@ -1,0 +1,129 @@
+#!/usr/bin/env python
+
+import os, sys, optparse
+from rasmus import util, treelib, tablelib
+from compbio import phylo, phyloDTL
+
+o = optparse.OptionParser()
+o.add_option("-s", "--stree", dest="stree",
+             metavar="<species tree>",
+             help="species tree (newick format)")
+o.add_option("-S", "--smap", dest="smap",
+             metavar="<gene2species map>",
+             help="mapping of gene names to species names")
+o.add_option("-T", "--treeext", dest="treeext",
+             metavar="<tree file extension>",
+             default=".tree")
+o.add_option("-R", "--reconext", dest="reconext",
+             metavar="<recon file extension>",
+             default=".recon")
+o.add_option("--by-fam", dest="by_fam", action="store_true")
+o.add_option("--use-famid", dest="use_famid", action="store_true")
+
+
+def count_all_events(conf, args):
+
+    stree = treelib.read_tree(conf.stree)
+    gene2species = phylo.read_gene2species(conf.smap)
+
+    treefiles = map(lambda line: line.rstrip(), util.read_strings(sys.stdin))
+    phyloDTL.init_dup_trans_loss_tree(stree)
+
+    for treefile in treefiles:
+        # read files and events
+        reconfile = util.replace_ext(treefile, conf.treeext, conf.reconext)
+        tree = treelib.read_tree(treefile)
+        recon, events, trans = phyloDTL.read_recon_events(reconfile, tree, stree)
+        losses = phyloDTL.find_loss(tree, recon, events, trans)
+
+        # count
+        phyloDTL.count_dup_trans_loss_tree(tree, stree, gene2species, recon, events, trans, losses)
+        #phyloDTL.count_ancestral_genes(stree)
+
+    # format trans
+    for node in stree:
+        for name, ntrans in node.data['trans'].iteritems():
+            node.data['trans_' + str(name)] = ntrans
+
+    # make table
+    trans_headers = ["trans_" + str(x.name) for x in stree.postorder()]
+    headers = ["genes", "dup"] + trans_headers + ["loss", "appear"]
+    ptable = treelib.tree2parent_table(stree, headers)
+
+    # sort by post order
+    lookup = util.list2lookup(x.name for x in stree.postorder())
+    ptable.sort(key=lambda x: lookup[x[0]])
+
+    ptable = [[str(row[0]), str(row[1]), float(row[2])] + row[3:]
+              for row in ptable]
+
+    tab = tablelib.Table(ptable,
+                         headers=["nodeid", "parentid", "dist"] + headers)
+    tab.write()
+
+    return 0
+
+
+def count_by_fam(conf, args):
+
+    stree = treelib.read_tree(conf.stree)
+    gene2species = phylo.read_gene2species(conf.smap)
+
+    treefiles = map(lambda line: line.rstrip(), util.read_strings(sys.stdin))
+
+    # write header
+    lookup = util.list2lookup(x.name for x in stree.postorder())
+    trans_headers = ["trans_" + str(x.name) for x in stree.postorder()]
+    headers = ["genes", "dup"] + trans_headers + ["loss", "appear"]
+    print "\t".join(["famid", "nodeid", "parentid", "dist"] + headers)
+
+    for treefile in treefiles:
+        if conf.use_famid:
+            famid = os.path.basename(os.path.dirname(treefile))
+        else:
+            famid = treefile
+
+        # read files and events
+        reconfile = util.replace_ext(treefile, conf.treeext, conf.reconext)
+        tree = treelib.read_tree(treefile)
+        recon, events, trans = phyloDTL.read_recon_events(reconfile, tree, stree)
+        losses = phyloDTL.find_loss(tree, recon, events, trans)
+
+        # count
+        phyloDTL.init_dup_trans_loss_tree(stree)
+        phyloDTL.count_dup_trans_loss_tree(tree, stree, gene2species, recon, events, trans, losses)
+        #phyloDTL.count_ancestral_genes(stree)
+
+        # format trans
+        for node in stree:
+            for name, ntrans in node.data['trans'].iteritems():
+                node.data['trans_' + str(name)] = ntrans
+
+        # make table
+        ptable = treelib.tree2parent_table(stree, headers)
+
+        # sort by post order
+        ptable.sort(key=lambda x: lookup[x[0]])
+
+        # write table
+        for row in ptable:
+            print "\t".join(map(str, [famid] + row))
+
+    return 0
+
+
+def main(conf, args):
+
+    if conf.stree is None or conf.smap is None:
+        print >>sys.stderr, "missing arguments -s -S"
+        return 1
+
+    if not conf.by_fam:
+        count_all_events(conf, args)
+
+    else:
+        count_by_fam(conf, args)
+
+
+conf, args = o.parse_args()
+sys.exit(main(conf, args))

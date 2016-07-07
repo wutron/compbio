@@ -1,0 +1,153 @@
+#!/usr/bin/env python
+
+# compare inferred orthologs, xenologs, duplications, transfers, and losses
+# see also tree-relations
+
+import sys
+import optparse
+import collections
+
+from rasmus import treelib, util
+
+o = optparse.OptionParser(usage="%prog [options] <actual_rel_file> <pred_rel_file>")
+o.add_option("--no-famid", dest="nofamid", action="store_true",
+             help="if True, family is not specified")
+o.add_option("--subset-genes", dest="subset_genes", action="store_true")
+o.add_option("--no-species-branch", dest="no_species_branch",
+             action="store_true", default=False,
+             help="ignore reconciled (and recipient) species")
+o.add_option("--no-recipient-species-branch", dest="no_recipient_species_branch",
+             action="store_true", default=False,
+             help="ignore recipient species")
+
+conf, args = o.parse_args()
+
+#=============================================================================
+
+# parse args
+actual_rel_file, pred_rel_file = args
+
+# read data
+actual_rel = util.read_delim(actual_rel_file)
+pred_rel = util.read_delim(pred_rel_file)
+
+# remove famid column if it is not given
+if conf.nofamid:
+    for row in actual_rel:
+        row[0] = ""
+    for row in pred_rel:
+        row[0] = ""
+
+# ignore species branch?
+if conf.no_species_branch:
+    get_vals_dup = lambda x: x[:4]     # ignore reconciled species
+    get_vals_trans = lambda x: x[:4]    # ignore donor and recipient species
+    def get_vals_loss(x):       # ignore species in which gene is lost
+        key = tuple(x[:3])      # (but keep track of multiple losses per gene tree branch)
+        loss_dct[key] += 1
+        return key + (loss_dct[key],)
+elif conf.no_recipient_species_branch:
+    get_vals_dup = get_vals_loss = lambda x: x
+    get_vals_trans = lambda x: x[:5]    # ignore recipient species
+else:
+    get_vals_dup = get_vals_trans = get_vals_loss = lambda x: x
+
+#=============================================================================
+# compare predicted to true
+
+# get genes and trees that are in predicted dataset
+pred_genes = set(x[2] for x in pred_rel if x[1] == "gene")
+pred_trees = set(x[0] for x in pred_rel)
+
+# dups
+actual_dups = set(tuple(get_vals_dup(x)) for x in actual_rel if x[1] == "dup"
+                  if x[0] in pred_trees)
+pred_dups = set(tuple(get_vals_dup(x)) for x in pred_rel if x[1] == "dup")
+dup_tp = len(actual_dups & pred_dups)
+
+# transfers
+actual_trans = set(tuple(get_vals_trans(x)) for x in actual_rel if x[1] == "trans"
+                   if x[0] in pred_trees)
+pred_trans = set(tuple(get_vals_trans(x)) for x in pred_rel if x[1] == "trans")
+trans_tp = len(actual_trans & pred_trans)
+
+# losses
+if conf.no_species_branch: loss_dct = collections.defaultdict(int)
+actual_loss = set(tuple(get_vals_loss(x)) for x in actual_rel if x[1] == "loss"
+                  if x[0] in pred_trees)
+if conf.no_species_branch: loss_dct = collections.defaultdict(int)
+pred_loss = set(tuple(get_vals_loss(x)) for x in pred_rel if x[1] == "loss")
+loss_tp = len(actual_loss & pred_loss)
+
+# orthologs
+actual_spec = [x for x in actual_rel if x[1] == "spec"]
+pred_spec = [x for x in pred_rel if x[1] == "spec"]
+
+if conf.subset_genes:
+    actual_orth = set((x[0],) + tuple(sorted([a,b])) for x in actual_spec
+                      if len(x) >= 4
+                      for a in x[2].split(",")
+                      for b in x[3].split(",")
+                      if a in pred_genes and b in pred_genes)
+else:
+    actual_orth = set((x[0],) + tuple(sorted([a,b])) for x in actual_spec
+                      if x[0] in pred_trees and len(x) >= 4
+                      for a in x[2].split(",")
+                      for b in x[3].split(","))
+pred_orth = set((x[0],) + tuple(sorted([a,b])) for x in pred_spec
+                for a in x[2].split(",")
+                for b in x[3].split(","))
+orth_tp = len(actual_orth & pred_orth)
+
+# xenologs (keep track of donor and recipient, e.g. do not sort)
+actual_trans = [x for x in actual_rel if x[1] == "trans"]
+pred_trans = [x for x in pred_rel if x[1] == "trans"]
+
+if conf.subset_genes:
+    actual_xeno = set((x[0],) + tuple([a,b]) for x in actual_trans
+                      if len(x) >= 4
+                      for a in x[2].split(",")
+                      for b in x[3].split(",")
+                      if a in pred_genes and b in pred_genes)
+else:
+    actual_xeno = set((x[0],) + tuple([a,b]) for x in actual_trans
+                      if x[0] in pred_trees and len(x) >= 4
+                      for a in x[2].split(",")
+                      for b in x[3].split(","))
+pred_xeno = set((x[0],) + tuple([a,b]) for x in pred_trans
+                for a in x[2].split(",")
+                for b in x[3].split(","))
+xeno_tp = len(actual_xeno & pred_xeno)
+
+#======================================
+# output
+
+# dup
+print "dup actual:\t" + str(len(actual_dups))
+print "dup pred:\t" + str(len(pred_dups))
+print "dup sn:\t" + str(util.safediv(dup_tp, len(actual_dups)))
+print "dup ppv:\t" + str(util.safediv(dup_tp, len(pred_dups)))
+
+# transfer
+print "trans actual:\t" + str(len(actual_trans))
+print "trans pred:\t" + str(len(pred_trans))
+print "trans sn:\t" + str(util.safediv(trans_tp, len(actual_trans)))
+print "trans ppv:\t" + str(util.safediv(trans_tp, len(pred_trans)))
+
+# loss
+print "loss actual:\t" + str(len(actual_loss))
+print "loss pred:\t" + str(len(pred_loss))
+print "loss sn:\t" + str(util.safediv(loss_tp, len(actual_loss)))
+print "loss ppv:\t" + str(util.safediv(loss_tp, len(pred_loss)))
+
+# orths
+print "orth actual:\t" + str(len(actual_orth))
+print "orth pred:\t" + str(len(pred_orth))
+print "orth sn:\t" + str(util.safediv(orth_tp, len(actual_orth)))
+print "orth ppv:\t" + str(util.safediv(orth_tp, len(pred_orth)))
+
+# xenos
+print "xeno actual:\t" + str(len(actual_xeno))
+print "xeno pred:\t" + str(len(pred_xeno))
+print "xeno sn:\t" + str(util.safediv(xeno_tp, len(actual_xeno)))
+print "xeno ppv:\t" + str(util.safediv(xeno_tp, len(pred_xeno)))

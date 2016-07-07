@@ -1,0 +1,133 @@
+#!/usr/bin/env python
+
+# output all relations represented in a tree
+# see also tree-relations
+
+import os, sys, optparse
+from itertools import chain
+
+from rasmus import treelib, util, tablelib
+from compbio import phylo, phyloDTL
+
+o = optparse.OptionParser()
+o.add_option("-d", "--dir", dest="dir", action="store_true",
+             help="identify trees by their directory")
+o.add_option("-s", "--stree", dest="stree", metavar="SPECIES_TREE",
+             help="species tree in newick format")
+o.add_option("-S", "--smap", dest="smap", metavar="GENE_TO_SPECIES_MAP",
+             help="gene to species map")
+o.add_option("-T", "--treeext", dest="treeext", metavar="TREE_EXT",
+             help="gene tree file extension")
+o.add_option("-R", "--reconext", dest="reconext", metavar="RECON_EXT",
+             help="reconciliation file extension")
+
+o.add_option("--no-species-branch", dest="no_species_branch",
+             action="store_true",
+             help="suppress reconciled species (for 'spec', 'dup', 'trans') " +\
+                  "and recipient species (for 'trans')")
+
+conf, args = o.parse_args()
+
+#=============================================================================
+# helper functions
+
+def read_filenames(stream):
+    for line in stream:
+        yield line.rstrip()
+
+def get_tree_relations(tree, recon, events, trans):
+    # print gene 'events'
+    for leaf in tree.leaves():
+        yield ["gene", leaf.name]
+
+    # print speciation, duplication, and transfer events
+    for node in tree:
+        event = events[node]
+
+        # skip gene events (already printed)
+        if event == "gene":
+            continue
+
+        # valid event?
+        if not (event == "spec" or event == "dup" or event == "trans"):
+            raise Exception("invalid event: %s" % event)
+
+        assert node.is_leaf() or (not node.is_leaf() and len(node.children) == 2)
+
+        # for spec and dup, rel = (genes on "first" side, genes on "last" side),
+        #                   where sides are sorted by gene names
+        # for trans, rel = (genes on donor side, genes on recipient side)
+        if event == "trans":
+            if trans[node] == node.children[0]:
+                children = (node.children[1], node.children[0])
+            else:
+                children = node.children
+            rel = list(sorted(child.leaf_names()) for child in children)
+        else:
+            rel = sorted((sorted(child.leaf_names()) for child in node.children),
+                         key=relation_format)
+
+        # print event
+        s = [event] + rel
+        if not conf.no_species_branch:
+            s.append(recon[node].name)
+        if event == "trans":
+            s.append(recon[trans[node]].name)   # recipient species (naively)
+        yield s
+
+    # print loss events
+    for gbranch, sbranch in phyloDTL.find_loss(tree, recon, events, trans):
+        yield ["loss", sorted(gbranch.leaf_names()),
+               str(sbranch.name)]
+
+def relation_format(val):
+    if isinstance(val, (list, tuple)):
+        return ",".join(relation_format(v) for v in val)
+    else:
+        return str(val)
+
+def write_relation(out, treename, rel):
+    out.write(treename + "\t" + "\t".join(relation_format(val)
+                                          for val in rel) + "\n")
+
+#=============================================================================
+# main
+
+# options
+if (not conf.stree) or (not conf.smap):
+    parser.error("-s/--stree and -S/--smap are required")
+if (not conf.treeext) or (not conf.reconext):
+    parser.error("-T/--treeext and -R/--reconext are required")
+
+# read species tree and map
+stree = treelib.read_tree(conf.stree)
+gene2species = phylo.read_gene2species(conf.smap)
+
+# get input filenames
+if len(args) == 0:
+    filenames = read_filenames(sys.stdin)
+else:
+    filenames = args
+
+# process tree files
+for filename in filenames:
+    tree = treelib.read_tree(filename)
+
+    if conf.dir:
+        treename = os.path.basename(os.path.dirname(filename))
+    else:
+        treename = filename
+
+    # check tree
+    assert(treelib.is_rooted(tree))
+
+    # get recon and events
+    try:
+        reconfile = util.replace_ext(filename, conf.treeext, conf.reconext)
+        recon, events, trans = phyloDTL.read_recon_events(reconfile, tree, stree)
+    except:
+        print >>sys.stderr, filename
+        raise
+
+    for rel in get_tree_relations(tree, recon, events, trans):
+        write_relation(sys.stdout, treename, rel)
