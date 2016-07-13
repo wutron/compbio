@@ -425,7 +425,7 @@ class Table (list):
 
         # write header
         if nheaders > 0:
-            out.write(delim.join(self.headers))
+            out.write(delim.join([str(header) for header in self.headers]))
             out.write('\n')
 
     def write_row(self, out, row, delim="\t"):
