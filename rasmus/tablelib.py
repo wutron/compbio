@@ -210,7 +210,8 @@ class Table (list):
                     self.headers = range(len(first_row))
                 rows = chain([first_row], rows)
             else:
-                self.headers = list(first_row)
+                if self.headers is None:
+                    self.headers = list(first_row)
 
             # add data
             self.extend(dict(zip(self.headers, row)) for row in rows)
@@ -425,7 +426,7 @@ class Table (list):
 
         # write header
         if nheaders > 0:
-            out.write(delim.join([str(header) for header in self.headers]))
+            out.write(delim.join(self.headers))
             out.write('\n')
 
     def write_row(self, out, row, delim="\t"):

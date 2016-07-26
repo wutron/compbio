@@ -164,15 +164,15 @@ class Recon (object):
                self.locus_tree and self.locus_recon and self.locus_events and \
                (self.daughters is not None)
 
-        # coal
+        # coal tree and recon
         coal_tree.write(
             fstreams.get("coal_tree", filenames.get("coal_tree", filename + exts["coal_tree"])),
             rootData=True)
         phylo.write_recon_events(
-            fstreams.get("coal_tree", filenames.get("coal_recon", filename + exts["coal_recon"])),
+            fstreams.get("coal_recon", filenames.get("coal_recon", filename + exts["coal_recon"])),
             self.coal_recon, noevent="none")
 
-        # locus
+        # locus tree and recon
         self.locus_tree.write(
             fstreams.get("locus_tree", filenames.get("locus_tree", filename + exts["locus_tree"])),
             rootData=True)
@@ -180,6 +180,7 @@ class Recon (object):
             fstreams.get("locus_recon", filenames.get("locus_recon", filename + exts["locus_recon"])),
             self.locus_recon, self.locus_events)
 
+        # daughters
         util.write_list(
             fstreams.get("daughters", filenames.get("daughters", filename + exts["daughters"])),
             [x.name for x in self.daughters])
