@@ -157,7 +157,7 @@ class Recon (object):
                     "daughters": ".daughters"
                     },
               filenames={},
-              fstreams={}):
+              filestreams={}):
         """Writes a reconciled gene tree to files"""
 
         assert coal_tree and self.coal_recon and \
@@ -166,23 +166,23 @@ class Recon (object):
 
         # coal tree and recon
         coal_tree.write(
-            fstreams.get("coal_tree", filenames.get("coal_tree", filename + exts["coal_tree"])),
+            filestreams.get("coal_tree", filenames.get("coal_tree", filename + exts["coal_tree"])),
             rootData=True)
         phylo.write_recon_events(
-            fstreams.get("coal_recon", filenames.get("coal_recon", filename + exts["coal_recon"])),
+            filestreams.get("coal_recon", filenames.get("coal_recon", filename + exts["coal_recon"])),
             self.coal_recon, noevent="none")
 
         # locus tree and recon
         self.locus_tree.write(
-            fstreams.get("locus_tree", filenames.get("locus_tree", filename + exts["locus_tree"])),
+            filestreams.get("locus_tree", filenames.get("locus_tree", filename + exts["locus_tree"])),
             rootData=True)
         phylo.write_recon_events(
-            fstreams.get("locus_recon", filenames.get("locus_recon", filename + exts["locus_recon"])),
+            filestreams.get("locus_recon", filenames.get("locus_recon", filename + exts["locus_recon"])),
             self.locus_recon, self.locus_events)
 
         # daughters
         util.write_list(
-            fstreams.get("daughters", filenames.get("daughters", filename + exts["daughters"])),
+            filestreams.get("daughters", filenames.get("daughters", filename + exts["daughters"])),
             [x.name for x in self.daughters])
 
 
@@ -334,12 +334,12 @@ def write_dlcoal_recon(filename, coal_tree, extra,
                              "daughters": ".daughters"
                             },
                        filenames={},
-                       fstreams={}):
+                       filestreams={}):
     """Writes a reconciled gene tree to files"""
 
     recon = Recon(extra["coal_recon"], extra["locus_tree"], extra["locus_recon"], extra["locus_events"],
                   extra["daughters"])
-    recon.write(filename, coal_tree, exts, filenames, fstreams)
+    recon.write(filename, coal_tree, exts, filenames, filestreams)
 
 def read_dlcoal_recon(filename, stree,
                       exts={"coal_tree": ".coal.tree",
