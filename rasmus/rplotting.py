@@ -149,7 +149,7 @@ def rplot(func, *args, **kargs):
             close = False
     
     
-    # make R call   
+    # make R call
     rp.__getattr__(func)(*args, **kargs)
     
     # close PDF and show
