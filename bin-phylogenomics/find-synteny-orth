@@ -69,7 +69,7 @@ o.add_option("--out-hits", dest="outhits", metavar="FILENAME",
 o.add_option("--out-blocks", dest="outblocks", metavar="FILENAME",
              help="output file for synteny blocks")
 
-             
+
 
 
 #=============================================================================
@@ -96,18 +96,18 @@ def write_synteny_hits(synid, hits, out=sys.stdout):
                                       b.species, b.seqname, b.data["ID"],
                                       b.start, b.end, b.strand,
                                       synid, score])) + "\n")
-    
+
 
 #=============================================================================
 # actions
 
 def count_synteny(hits, window1, window2=None):
     """Count the number of neighboring syntenic hits for each hit"""
-    
+
     for hit, syntenic in fuzzy.find_syntenic_neighbors(
             hits,
             window1, window2):
-            
+
             a, b, score = hit
             print "\t".join(map(str, [a.species, a.seqname, a.data["ID"],
                                       a.start, a.end, a.strand,
@@ -141,11 +141,11 @@ def cluster_synteny(hits, window1, window2, hitsfile, blocksfile,
     out = util.open_stream(blocksfile, "w")
     write_synteny_blocks(out, blocks)
     out.close()
-    
+
     return blocks
 
 
-        
+
 
 def find_block_overlaps(blocks):
     """Returns a list of lists of overlaping blocks"""
@@ -169,8 +169,8 @@ def find_block_overlaps(blocks):
         overlaps.append([lookup2[r] for r in group])
 
     return overlaps
-    
-    
+
+
 
 def get_synteny_orths(blocks, minsize=3):
 
@@ -182,7 +182,7 @@ def get_synteny_orths(blocks, minsize=3):
     # filter blocks by size
     blocks = [block for block in blocks
               if len(block.data["bbh"]) >= minsize]
-    
+
     # find overlaping blocks
     overlaps = find_block_overlaps(blocks)
 
@@ -199,8 +199,8 @@ def get_synteny_orths(blocks, minsize=3):
 
         block.data["hits"] = [hit for hit in block.data["hits"]
                               if gene_counts[hit[0].data["ID"]] <= 1 and
-                                 gene_counts[hit[1].data["ID"]] <= 1]            
-    
+                                 gene_counts[hit[1].data["ID"]] <= 1]
+
     return blocks
 
 
@@ -223,7 +223,7 @@ def find_synteny_orths(blocks, hitsfile, blocksfile, minsize=3):
 # TODO: only works with one input file at a time.
 
 def main(argv):
-    
+
     # parse options
     conf, args = o.parse_args(argv)
 
@@ -238,19 +238,19 @@ def main(argv):
     else:
         files = [sys.stdin]
 
-    
+
     if conf.count:
         for f in files:
             hits = read_hits(f, conf.score)
             count_synteny(hits, conf.window)
-            
+
     elif conf.cluster:
         for f in files:
             hits = read_hits(f, conf.score)
             cluster_synteny(hits, conf.window, conf.window,
                             conf.outhits, conf.outblocks,
                             conf.cluster_method)
-        
+
     elif conf.orth:
         for f in files:
             hits = read_hits(f, conf.score)
@@ -258,12 +258,12 @@ def main(argv):
                                      conf.outhits, conf.outblocks,
                                      conf.cluster_method)
             find_synteny_orths(blocks, conf.outhits, conf.outblocks)
-            
+
     else:
         raise Exception("Choose an action to perform")
 
     return 0
-            
+
 
 
 sys.exit(main(sys.argv[1:]))

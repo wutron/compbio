@@ -10,7 +10,7 @@ def hermite(x0, x1, v0, v1, t):
                [0, 1, 0, 0],
                [0, 1, 2, 3]])
     p = transpose([[x0, x1, v0, v1]])
-    
+
     return dot(dot(a, inverse(M)), p)
 
 def bezier2(x0, p1, p2, x1, t):
@@ -26,7 +26,7 @@ def bezier2(x0, p1, p2, x1, t):
     p = transpose([[x0, p1, p2, x1]])
 
     C = dot(inverse(M),B)
-    
+
     return dot(dot(a, C), p)
 
 def lerp(x0, x1, t):

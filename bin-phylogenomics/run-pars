@@ -91,7 +91,7 @@ for fn in files:
         prog = phylip.dnapars
     else:
         prog = phylip.protpars
-    
+
     trees = prog(align, verbose=True,
                  args=args,
                  usertree=usertree,

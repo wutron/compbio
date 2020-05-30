@@ -36,7 +36,7 @@ def count_all_events(conf, args):
 
     ptable = [[str(row[0]), str(row[1]), float(row[2])] + row[3:]
               for row in ptable]
-    
+
     tab = tablelib.Table(ptable,
                          headers=["nodeid", "parentid", "dist", "genes",
                                   "dup", "loss", "appear"])
@@ -50,7 +50,7 @@ def count_by_fam(conf, args):
     gene2species = phylo.read_gene2species(conf.smap)
     lookup = util.list2lookup(x.name for x in stree.postorder())
 
-    if conf.files:        
+    if conf.files:
         trees_files = ((treelib.read_tree(line.rstrip()), line.rstrip())
                        for line in sys.stdin)
     else:
@@ -66,7 +66,7 @@ def count_by_fam(conf, args):
             famid = os.path.basename(os.path.dirname(fn))
         else:
             famid = fn
-        
+
         etree = phylo.count_dup_loss_trees([tree], stree, gene2species)
         ptable = treelib.tree2parent_table(
             etree, ["genes", "dup", "loss", "appear"])
@@ -75,9 +75,9 @@ def count_by_fam(conf, args):
         ptable.sort(key=lambda x: lookup[x[0]])
 
         # write table
-        for row in ptable: 
+        for row in ptable:
             print "\t".join(map(str, [famid] + row))
-    
+
     return 0
 
 
@@ -93,7 +93,7 @@ def main(conf, args):
 
     else:
         count_by_fam(conf, args)
-        
+
 
 conf, args = o.parse_args()
 sys.exit(main(conf, args))

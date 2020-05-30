@@ -49,7 +49,7 @@ def ipy():
 class ListFiles:
     def __call__(self, args=""):
         return os.system("ls " + args)
-    
+
     def __repr__(self):
         self()
         return ""
@@ -77,5 +77,5 @@ def show_tree(tree, **options):
     from rasmus.vis import treevis
     vis = treevis.TreeViewer(tree, **options)
     vis.show()
-    
+
     return vis

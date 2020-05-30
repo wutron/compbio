@@ -32,7 +32,7 @@ if inputformat == "lmat":
     rowlabels = util.unique(row[0] for row in dat)
     collabels = util.unique(row[1] for row in dat)
     imat = list(util.unique(matrixlib.ilmat2imat(dat, rowlabels, collabels)))
-    
+
 else:
     raise Exception("unknown input format '%s'" % inputformat)
 
@@ -59,7 +59,7 @@ if outputformat == "rmat":
     nrows = max(row[0] for row in imat) + 1
     ncols = max(row[1] for row in imat) + 1
     nnz = len(imat)
-    rmat = matrixlib.imat2rmat(nrows, ncols, nnz, imat)    
+    rmat = matrixlib.imat2rmat(nrows, ncols, nnz, imat)
     matrixlib.write_rmat(out, nrows, ncols, nnz, rmat)
 
 elif outputformat == "srmat":
@@ -82,12 +82,12 @@ elif outputformat == "srmat":
     nnz = sum(map(len, rmat))
 
     matrixlib.write_rmat(out, nrows, ncols, nnz, rmat, square=True)
-    
+
 else:
     raise Exception("unknown output format '%s'" % outputformat)
-    
 
 
 
 
-    
+
+

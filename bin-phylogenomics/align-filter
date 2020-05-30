@@ -14,7 +14,7 @@ o.add_option("-L", "--alignext2", metavar="<new alignment file extension>",
              default=".filter.align")
 o.add_option("-I", "--alignind", metavar="<alignment index extension>",
              default=".filter.cols")
-o.add_option("-r", "--ratio", 
+o.add_option("-r", "--ratio",
              metavar="<ratio of sequences required per column>",
              type="float", default=.5)
 o.add_option("-m", "--minlen", metavar="<minimum align length allowed>",
@@ -28,24 +28,24 @@ def filterAlign(aln, ratio):
     seqs = aln.values()
     rows = range(len(aln))
     minseq = len(aln) * ratio
-    
+
     ind = [i for i in xrange(aln.alignlen())
                 if util.count(lambda j: seqs[j][i] != "-", rows) >= minseq]
-    
+
     return ind
 
 
 for alignfile in args:
     print alignfile
-    
+
     aln = fasta.read_fasta(alignfile)
     ind = filterAlign(aln, conf.ratio)
-    
+
     aln2 = alignlib.subalign(aln, ind)
 
-    alignfile2 = util.replace_ext(alignfile, conf.alignext, conf.alignext2)    
-    indfile = util.replace_ext(alignfile, conf.alignext, conf.alignind)    
+    alignfile2 = util.replace_ext(alignfile, conf.alignext, conf.alignext2)
+    indfile = util.replace_ext(alignfile, conf.alignext, conf.alignind)
     aln2.write(alignfile2)
     util.write_list(indfile, ind)
-    
-    
+
+

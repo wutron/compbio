@@ -53,15 +53,15 @@ if __name__ == "__main__":
 
 
     dowork(99)
-    
+
     @func_defaults(x=[1,2,3], y=7)
     def doit(x=0, y=0):
         x.append(4)
         print x, y
-    
+
     doit()
     doit()
-    
+
     #help(dowork)
 
 

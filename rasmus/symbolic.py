@@ -20,8 +20,8 @@ def derivate(expr, dvar, nth=1):
         return derivate(derivate(expr, dvar, nth-1), dvar)
     elif nth < 0:
         raise Exception("nth must be >= 0")
-    
-    
+
+
     if expr[0] == 'scalar':
         # d/dx c = 0
         return scalar0
@@ -74,7 +74,7 @@ def simplify(expr):
     elif expr[0] == 'mult':
         expr1 = simplify(expr[1])
         expr2 = simplify(expr[2])
-        
+
         if expr1 == scalar1:
             return expr2
         elif expr2 == scalar1:
@@ -100,7 +100,7 @@ def simplify(expr):
             return ('power', expr1, expr2)
 
     return expr
-        
+
 
 def assign_vars(expr, vars):
     """Assign values to the given variables"""
@@ -108,10 +108,10 @@ def assign_vars(expr, vars):
     if expr[0] in ("add", "mult", "power"):
         return (expr[0], assign_vars(expr[1], vars),
                          assign_vars(expr[2], vars))
-    
+
     elif expr[0] == "scalar":
         return expr
-    
+
     elif expr[0] == "var":
         if expr[1] in vars:
             return ('scalar', vars[expr[1]])
@@ -123,12 +123,12 @@ def assign_vars(expr, vars):
 
 
 if __name__ == "__main__":
-    
+
     print 0, derivate(('scalar', 4), 'x')
 
     print "4", derivate(('mult', ('scalar', 4),
                                  ('var', 'x')), 'x')
-    
+
     print "4", simplify(derivate(('mult', ('scalar', 4),
                                           ('var', 'x')), 'x'))
 
@@ -153,7 +153,7 @@ if __name__ == "__main__":
         ('power', ('var', 'x'), ('scalar', 6)),
         'x'))
 
-    
+
     print "4 + 6x^5", simplify(derivate(
         ('add',
          ('mult', ('scalar', 4), ('var', 'x')),

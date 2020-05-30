@@ -8,22 +8,22 @@ if len(sys.argv) < 2:
     print >>sys.stderr, """\
 To list files:
     phylofiles [-e|-n] <base dir> <file suffix>
-   
+
     -e list only files that exist
     -n list only files that do not exist
 
 To symbolically link files
     phylofiles -s <base dir1> <file suffix1> <base dir2> <file suffix2>
-    
+
     will create a symbolic link from
     <base dir2>/famid/famid.<file suffix2>
-    to 
+    to
     <base dir1>/famid/famid.<file suffix1>
-    
+
     if <base dir1>/famid/famid.<file suffix1> exists
-    
+
     NOTE: <base dir> or <suffix> can be the same between version 1 and 2
-    
+
 """
     sys.exit(1)
 
@@ -45,7 +45,7 @@ for i in xrange(1, len(sys.argv)):
     else:
         rest = sys.argv[i:]
         break
-        
+
 if action == "list":
     path, ext = rest
 
@@ -60,7 +60,7 @@ if action == "list":
 
 elif action == "symlink":
     path1, ext1, path2, ext2 = rest
-    
+
     for name in os.listdir(path1):
         fn1 = os.path.join(path1, name, name + ext1)
         fn2 = os.path.join(path2, name, name + ext2)
@@ -71,6 +71,6 @@ elif action == "symlink":
                 fn1 = os.path.basename(fn1)
             else:
                 fn1 = os.path.join("..", "..", fn1)
-            
+
             print "%s <== %s" % (fn1, fn2)
             os.symlink(fn1, fn2)

@@ -19,7 +19,7 @@ conf, args = o.parse_args()
 
 def main(conf):
     label, distmat = phylip.read_dist_matrix(conf.dist)
-    
+
     if conf.label:
         if conf.label.endswith(".align") or \
            conf.label.endswith(".aln") or \
@@ -27,11 +27,11 @@ def main(conf):
             label = fasta.read_fasta(conf.label).keys()
         else:
             label = util.read_strings(conf.label)
-    
-    util.heatmap(distmat, rlabels=label, clabels=label, 
-                 xmargin=conf.margin, ymargin=conf.margin, 
+
+    util.heatmap(distmat, rlabels=label, clabels=label,
+                 xmargin=conf.margin, ymargin=conf.margin,
                  width=12, height=12)
-    
+
 
 main(conf)
 

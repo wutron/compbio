@@ -21,14 +21,14 @@ conf, args = o.parse_args()
 #=============================================================================
 gene2species = phylo.read_gene2species(conf.smap)
 stree = treelib.read_tree(conf.stree)
-    
+
 util.tic("species tree -> gene tree")
-    
+
 i = 0
 for f in args:
     i += 1
     util.logger("%d of %d (%s)" % (i, len(args), f))
-        
+
     seqs = fasta.read_fasta(f)
     tree = phylo.stree2gtree(stree, seqs.keys(), gene2species)
     tree.write(util.replace_ext(f, conf.fastaext, conf.treeext))

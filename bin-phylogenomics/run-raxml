@@ -126,7 +126,7 @@ for fn in files:
             treelib.unroot(gtree, newCopy=False)
         gtree.write(outdir + "/grouping", oneline=True,
                     writeData=lambda node: "")
-        
+
         args.extend(["-g", "grouping"])
 
     # (bifurcating) backbone constraint
@@ -137,9 +137,9 @@ for fn in files:
             treelib.unroot(ctree, newCopy=False)
         ctree.write(outdir + "/constraint", oneline=True,
                     writeData=lambda node: "")
-        
+
         args.extend(["-r", "constraint"])
-    
+
     # extra arguments
     if conf.extra:
         args.extend(conf.extra)

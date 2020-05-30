@@ -44,13 +44,13 @@ def add_common_options(o, align=True, tree=True, dist=False):
                  action="store_true",
                  default=False,
                  help="verbose output")
-    
+
 def parse_common_options(o):
     conf, files = o.parse_args()
 
     if conf.extra:
         conf.extra = shlex.split(conf.extra)
-    
+
     return conf, files
 
 

@@ -48,8 +48,8 @@ o.add_option("--binary", dest="binary",
 
 conf, files = o.parse_args()
 
-                
-            
+
+
 def est_bgfreq(aln):
     hist = {"A": 1, "C": 1, "G": 1, "T": 1}
     for seq in aln:
@@ -99,22 +99,22 @@ for filename in files:
         if ntrees < conf.numtrees:
             print "SKIP: %d < %d trees" % (ntrees, conf.numtrees)
             continue
-    
+
     tree = phylo.consensus_majority_rule(trees, rooted=conf.rooted)
 
     if conf.binary:
         phylo.ensure_binary_tree(tree)
 
-    
+
     if conf.align:
         aln = fasta.read_fasta(conf.align)
         bgfreq = est_bgfreq(aln)
         phylo.ensure_binary_tree(tree)
-        
+
         # find actual branch lengths
         spidir.find_ml_branch_lengths_hky(tree, aln, bgfreq, conf.kappa,
                                           maxiter=conf.maxiter, parsinit=True)
-    
+
     if conf.rooted:
         if tree.root.children[0].is_leaf() or \
            tree.root.children[1].is_leaf():
@@ -125,7 +125,7 @@ for filename in files:
                  tree.root.children[1].data["boot"]) / 2.0
             tree.root.children[0].data["boot"] =  b
             tree.root.children[1].data["boot"] =  b
-    
+
     if conf.outfile:
         tree.write(conf.outfile)
     else:

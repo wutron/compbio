@@ -30,7 +30,7 @@ if outformat == "ptree":
     labels = tree.leaf_names()
     tree.write_parent_tree(sys.stdout, tree, labels)
     util.write_list(conf.labels, tree, labels)
-    
+
 elif outformat == "newick":
     tree.write_newick(sys.stdout)
 

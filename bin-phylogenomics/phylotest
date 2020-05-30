@@ -16,31 +16,31 @@ def topology_equal(tree1, tree2, unroot=True):
     hash1 = phylo.hash_tree(tree1)
     hash2 = phylo.hash_tree(tree2)
     return hash1 == hash2
-    
+
 
 def create_basedir(path):
     a, b = os.path.split(path)
-    
+
     if a == "":
         return ".."
     else:
         return os.path.join("..", create_basedir(a))
-    
 
-def prepare_test(argv):        
+
+def prepare_test(argv):
     """prepare input files"""
 
     if len(argv) < 5:
         raise Exception("arguments must be: prepare [-c] <datadir> <evaldir> <file extension> [eval file extension]")
-    
+
     if argv[2] == "-c":
-        docopy = True    
+        docopy = True
         datadir, evaldir, ext = argv[3:6]
 
         if len(argv) > 6:
             evalext = argv[6]
         else:
-            evalext = ext        
+            evalext = ext
     else:
         docopy = False
         datadir, evaldir, ext = argv[2:5]
@@ -50,29 +50,29 @@ def prepare_test(argv):
         else:
             evalext = ext
 
-    
-    
+
+
     if not os.path.exists(evaldir):
         os.makedirs(evaldir)
-    
+
     basedir = create_basedir(evaldir)
-    
-    
+
+
     names = os.listdir(datadir)
     for name in names:
         dirname = os.path.join(evaldir, name)
         if not os.path.exists(dirname):
             os.makedirs(dirname)
-            
+
         newfile = os.path.join(evaldir, name, name+evalext)
-        
+
         if os.path.exists(newfile):
             continue
-                
+
         if docopy:
             shutil.copy(os.path.join(datadir, name, name+ext),
                         newfile)
-        else:            
+        else:
             os.symlink(os.path.join(basedir, "..", datadir, name, name+ext),
                        newfile)
 
@@ -94,14 +94,14 @@ def get_losses(tree, stree, recon):
     return set((tuple(sorted(loss[0].leaf_names())),
                 loss[1].name)
                for loss in phylo.find_loss(tree, stree, recon))
-         
+
 
 def get_orths(tree, events):
     specs = [sorted([sorted(child.leaf_names())
                      for child in node.children])
              for node in events
              if events[node] == "spec"]
-    
+
     return set(tuple(sorted((a, b)))
                for s in specs
                for a in s[0]
@@ -118,10 +118,10 @@ def report_test(argv):
                  default="")
     o.add_option("--rooted", dest="rooted", action="store_true",
                  default=False)
-    
+
     # parse options
     conf, args = o.parse_args(argv[2:])
-    
+
     if len(args) != 4:
         raise Exception(
           "arguments must be: report [-S <gene2species>] [-s <species tree>]\n"
@@ -183,8 +183,8 @@ def report_test(argv):
                          )
 
 
-    
-    
+
+
     top_correct = 0
     ntrees = 0
     total_branches = 0
@@ -192,14 +192,14 @@ def report_test(argv):
 
     out2 = open(evaldir+allresultext, "w")
     tab.write_header(out2)
-    
+
     for name in names:
         print "checking", name
 
-        datatreefile = os.path.join(datadir, name, name+dataext)        
+        datatreefile = os.path.join(datadir, name, name+dataext)
         evaltreefile = os.path.join(evaldir, name, name+evalext)
         resultfile = os.path.join(evaldir, name, name+resultext)
-        
+
         if os.path.exists(evaltreefile):
             datatree = treelib.read_tree(datatreefile)
             evaltree = treelib.read_tree(evaltreefile)
@@ -210,7 +210,7 @@ def report_test(argv):
                 eval_recon = phylo.reconcile(evaltree, stree, gene2species)
                 data_events = phylo.label_events(datatree, data_recon)
                 eval_events = phylo.label_events(evaltree, eval_recon)
-                
+
                 data_dups = get_dups(datatree, data_events)
                 eval_dups = get_dups(evaltree, eval_events)
 
@@ -218,7 +218,7 @@ def report_test(argv):
                 eval_losses = get_losses(evaltree, stree, eval_recon)
 
                 data_orths = get_orths(datatree, data_events)
-                eval_orths = get_orths(evaltree, eval_events)                
+                eval_orths = get_orths(evaltree, eval_events)
             else:
                 data_dups = set()
                 eval_dups = set()
@@ -239,20 +239,20 @@ def report_test(argv):
             nbranches = len(evaltree.nodes) - ngenes - 1
             correct = int(topology_equal(datatree, evaltree,
                                          unroot=not conf.rooted))
-            
+
             if len(datatree.leaves()) <= 3:
                 branches = 0
                 branches_correct = 0
             else:
                 rf = phylo.robinson_foulds_error(datatree, evaltree)
-                branches_correct = int((1.0 - rf) * nbranches)            
+                branches_correct = int((1.0 - rf) * nbranches)
 
             # compute totals
             top_correct += correct
             ntrees += 1
             total_branches += nbranches
             total_branches_correct += branches_correct
-            
+
             tab.write_row(out2,
                 {"tree": name,
                  "ngenes": ngenes,
@@ -270,7 +270,7 @@ def report_test(argv):
                  "loss_pred": len(eval_losses),
                  "loss_sn": util.safediv(losses_tp, len(data_losses), 1.0),
                  "loss_ppv": util.safediv(losses_tp, len(eval_losses), 1.0),
-                 
+
                  "orth_actual": len(data_orths),
                  "orth_pred": len(eval_orths),
                  "orth_sn": util.safediv(orths_tp, len(data_orths), 1.0),
@@ -284,13 +284,13 @@ def report_test(argv):
             #print >>out, "correct branches:", util.safediv(branches_correct /
             #                                   total_branches)
             #out.close()
-            
+
         else:
             print "  no tree exists"
 
 
     out2.close()
-    
+
     # write summary
     out = open(evaldir+summaryext, "w")
     print >>out, "percent correct: %.2f" % (100 * top_correct / ntrees)
@@ -301,7 +301,7 @@ def report_test(argv):
                                      total_branches)
     out.close()
 
-    
+
 
 
 def main(argv):

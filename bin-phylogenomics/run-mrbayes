@@ -33,22 +33,22 @@ for fn in files:
     else:
         usertree = None
 
-    nexfilename = outdir + "/infile.nex"    
+    nexfilename = outdir + "/infile.nex"
     options = {"ngen": conf.ngen}
     mrbayes.setDefaultOptions(options)
-    
+
     options["burninfrac"] = .25
     options["relburnin"] = "yes"
-    
+
     # force best binary tree (if possible)
     options["extra"] += "sumt contype=allcompat;"
-        
+
     # write input file
     out = file(nexfilename, "w")
     mrbayes.writeNexus(out, align.keys(), align.values(), conf.seqtype, options)
     mrbayes.writeMrbayesOptions(out, options, seqtype=conf.seqtype)
     out.close()
-    
+
 
     cmd = "mb '%s' > '%s/out'" % (nexfilename, outdir)
     print cmd

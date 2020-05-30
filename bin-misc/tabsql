@@ -29,7 +29,7 @@ ftype_names = {
 
 
 def open_tabfile(filename):
-    
+
     # open tab file
     if tabfile == "-":
         infile = sys.stdin
@@ -57,7 +57,7 @@ else:
 for i, tabfile in enumerate(conf.input):
     infile = open_tabfile(tabfile)
     pre_rows = []
-    
+
     # get table name
     if i < len(conf.table):
         table = conf.table[i]
@@ -106,7 +106,7 @@ for indexstr in conf.index:
     table, field = indexstr.split(".")
     con.execute("CREATE INDEX %s ON %s (%s);" % (
         indexstr.replace(".", "__"), table, field))
-    
+
 
 con.commit()
 

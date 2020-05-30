@@ -21,15 +21,15 @@ class SyntenyBlock (object):
 
         # extra data
         self.data = copy.copy(data)
-    
+
 
     def get_direction(self):
         """Returns 1 if region1.strand == region2.strand and
                   -1 if region1.strand != region2.strand
         """
         return self.dir
-    
-    
+
+
     def add_orth(self, orth, direction=None):
         """Initialize synteny block with an ortholog pair"""
         self.orths.append(orth)
@@ -61,7 +61,7 @@ def make_orth(db, genes1, genes2):
 
     The ortholog format is ((gene1a, gene1b, gene1c), (gene2a, gene2b))
     """
-    
+
     genes1 = list(genes1)
     genes2 = list(genes2)
     genes1.sort(key=lambda x: db.get_region(x).start)
@@ -134,7 +134,7 @@ def read_synteny_blocks(filename, feature="synteny",
                         extra=lambda r, cols:None):
     infile = util.open_stream(filename)
     blocks = []
-    
+
     for line in infile:
         tokens = line.split("\t")
         species1, chrom1, start1, end1, \
@@ -143,16 +143,16 @@ def read_synteny_blocks(filename, feature="synteny",
             name = tokens[9]
         else:
             name = ""
-        
+
         blocks.append(SyntenyBlock(
-            regionlib.Region(species1, chrom1, feature, 
+            regionlib.Region(species1, chrom1, feature,
                              int(start1), int(end1), 1),
-            regionlib.Region(species2, chrom2, feature, 
+            regionlib.Region(species2, chrom2, feature,
                              int(start2), int(end2), int(direction)),
             name=name))
 
         extra(blocks[-1], tokens[10:])
-        
+
     return blocks
 
 

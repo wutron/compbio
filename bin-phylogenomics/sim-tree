@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Simulate a gene trees 
+# Simulate a gene trees
 #
 
 
@@ -119,10 +119,10 @@ def gene2species(gene):
 
 def read_params(filename):
     """Read SPIDIR model parameters to a file"""
-    
+
     infile = file(filename)
     params = {}
-    
+
     for line in infile:
         tokens = line.split("\t")
         key = tokens[0]
@@ -163,7 +163,7 @@ def sim_tree(stree, subrate, duprate, lossrate, transrate, recombrate,
         if node == tree.root:
             continue
         node.dist *= subrate
-    
+
     # write info file
     #infofile.write("gene rate: %f\n" % generate)
     infofile.write("doomed: %d\n" % doomed)
@@ -171,18 +171,18 @@ def sim_tree(stree, subrate, duprate, lossrate, transrate, recombrate,
     recon, events = phylo.brecon2recon_events(brecon)
     recon2 = phylo.reconcile(tree, stree, gene2species)
     infofile.write("parsimonious reconciliation: %s\n" % str(recon2 == recon))
-    
+
     # rename doomed leaves
     for node in pretree.leaves():
         if isinstance(node.name, int):
             pretree.rename(node.name, "doom_%d" % node.name)
-    
+
     return pretree, tree, brecon
 
 
 def sim_branch_len(time, gene_rate, sp_rate):
     """simulate one branch length"""
-    
+
     alpha, beta = sp_rate
     return gene_rate * time * random.gammavariate(alpha, 1/beta)
 
@@ -206,15 +206,15 @@ def rename_nodes_preorder(tree):
     walk(tree.root)
 
 
-       
+
 
 #=============================================================================
 # main function
 
 def main(conf):
-    # read configuration    
+    # read configuration
     stree = treelib.read_tree(conf.stree)
-    
+
 
     if conf.bgfreq:
         conf.bgfreq = parse_bg_freq(conf.bgfreq)
@@ -229,7 +229,7 @@ def main(conf):
     def seq_matrix_func(t):
         return phylo.make_hky_matrix(t, bgfreq=conf.bgfreq, kappa=conf.kappa)
 
-    
+
     # simulate
     util.tic("simulating %d trees" % conf.ntrees)
     for i in range(conf.start, conf.ntrees):
@@ -245,11 +245,11 @@ def main(conf):
                 continue
 
         util.logger("simulating", i)
-        
+
         # open information file
         infofilename = os.path.join(dirname, str(i) + conf.outinfoext)
-        infofile = open(infofilename, "w")                    
-        
+        infofile = open(infofilename, "w")
+
         # create tree and write it
         pretree, tree, brecon = sim_tree(
             stree,
@@ -260,20 +260,20 @@ def main(conf):
             maxsize=conf.maxsize)
         rename_nodes_preorder(tree)
         recon, events = phylo.brecon2recon_events(brecon)
-        
+
         outfile = os.path.join(dirname, str(i))
-        
+
         pretree.write(outfile + ".times" + conf.outtreeext)
         tree.write(outfile + conf.outtreeext)
         phylo.write_recon_events(outfile + conf.outreconext, recon, events)
         phylo.write_brecon(open(outfile + conf.outbreconext, "w"), brecon)
         phylo.write_bevents(open(outfile + conf.outeventsext, "w"),
                             phylo.find_bevents(brecon))
-        
+
         align = phylo.sim_seq_tree(tree, conf.genelen,
                                    matrix_func=seq_matrix_func,
                                    bgfreq=conf.bgfreq)
-        
+
         # write sequence output
         align.write(outfile + conf.outseqext)
         align.write(outfile + conf.outalignext)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python-i
 #
-# Thu May 17 11:42:05 EDT 2007 
+# Thu May 17 11:42:05 EDT 2007
 # ultimate tree/alignment/distmat viewer
 #
 
@@ -116,21 +116,21 @@ def read_lmat_matrix(lmatfile, order=None):
         mat.cols.append(j)
         mat.vals.append(v)
         mat[i][j] = v
-        
+
     mat.rowlabels = labels
-    mat.collabels = labels    
+    mat.collabels = labels
 
     mat.colormap = util.ColorMap([[0, (0, 0, 0)],
                                   [100, (0, 0, 1)],
                                   [300, (0, 1, 0)],
                                   [500, (1, 1, 0)],
                                   [1000, (1, 0, 0)]])
-    
+
     return mat
 
 
 
-        
+
 #=============================================================================
 # determine input filenames
 
@@ -151,23 +151,23 @@ if conf.fasta:
 
 
 # add any implicit files with matching extension
-for basename in args:    
+for basename in args:
     for ext in conf.treeext:
         treefiles.append(basename + ext)
-    
+
     for ext in conf.distmatext:
         distmatfiles.append(basename + ext)
-    
+
     for ext in conf.lmatext:
         lmatfiles.append(basename + ext)
-    
+
     for ext in conf.alignext:
         alignfiles.append(basename + ext)
-        
+
     for ext in conf.fastaext:
         fastafiles.append(basename + ext)
-    
-    
+
+
 #=============================================================================
 # read tree
 trees = []
@@ -185,7 +185,7 @@ if conf.stree:
     stree = treelib.read_tree(conf.stree)
 else:
     stree = None
-    
+
 if conf.treecolormap:
     tree_colormap = treevis.read_tree_color_map(conf.treecolormap)
 else:
@@ -197,14 +197,14 @@ else:
 distmats = []
 distmat_names = []
 distmat_labels = []
-    
-        
+
+
 # read in multiple distance matrices
 for matfile in distmatfiles:
     label, mat = phylip.read_dist_matrix(matfile)
     distmats.append(mat)
     distmat_labels.append(label)
-    distmat_names.append(matfile)    
+    distmat_names.append(matfile)
 
 # read in multiple blast hits
 for lmatfile in lmatfiles:
@@ -245,19 +245,19 @@ for filename in alignfiles:
 # create PhyloViewer
 
 vis = phylovis.PhyloViewer(trees, distmats, aligns,
-                  
+
                            # tree config
                            stree=stree,
                            gene2species=gene2species,
                            tree_colormap=tree_colormap,
 
                            # distmat config
-                           dist_labels=distmat_labels, 
+                           dist_labels=distmat_labels,
                            matrix_colormap=colormap,
                            seqs=seqs,
 
                            # filenames
                            tree_names=treefiles,
-                           distmat_names=distmat_names,                  
+                           distmat_names=distmat_names,
                            align_names=alignfiles)
 vis.show()

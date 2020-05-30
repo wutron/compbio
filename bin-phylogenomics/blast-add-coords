@@ -17,7 +17,7 @@ output format:
 10. start2
 11. end2
 12. strand2 (1,-1)
-13-... columns of input file 
+13-... columns of input file
 
 """
 
@@ -52,13 +52,13 @@ o.add_option("-s", "--subject", dest="subject", metavar="COL",
 
 
 def main(argv):
-    
+
     # parse options
     conf, args = o.parse_args(argv)
 
     conf.query -= 1
     conf.subject -= 1
-    
+
     # determine features
     if conf.features is None:
         features = []
@@ -91,7 +91,7 @@ def main(argv):
                                 hit)
 
 
-    
+
 main(sys.argv[1:])
 
 

@@ -27,7 +27,7 @@ class HtmlTable (object):
         if headers is None:
             # set headers from table
             self.headers = table.headers
-            
+
         elif isinstance(headers, dict):
             # set some headers from dict
 
@@ -43,12 +43,12 @@ class HtmlTable (object):
         if formats is None:
             # use no formating
             self.formats = [None] * len(self.headers)
-            
+
         elif isinstance(formats, dict):
             # set some formats from dict
             self.formats = [None] * len(self.headers)
             for header, f in formats.items():
-                self.formats[table.headers.index(header)] = f            
+                self.formats[table.headers.index(header)] = f
         else:
             # set formats from list
             self.formats = list(formats)
@@ -80,15 +80,15 @@ class HtmlTable (object):
         for i, row in enumerate(self.table):
             out.write("<tr><td class='tab'>%d.</td>" % (i+1))
             for j, item in enumerate(util.mget(row, self.table.headers)):
-                
+
                 if self.formats[j] is not None:
                     # write formating
                     out.write("<td class='tab'>%s&nbsp;</td>" %
                                self.formats[j](item))
                 else:
                     out.write("<td class='tab'><nobr>%s&nbsp;</nobr></td>" % str(item))
-            out.write("</tr>\n")    
-            
+            out.write("</tr>\n")
+
         out.write("</table>")
 
         if fullpage:

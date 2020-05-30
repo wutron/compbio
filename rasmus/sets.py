@@ -10,7 +10,7 @@ class UnionFind:
     """An implementation of the UNINON/FIND algorithm"""
 
     def __init__(self, items=[]):
-        self._parent = None    
+        self._parent = None
         self._items = set(items)
 
     def __contains__(self, item):
@@ -20,16 +20,16 @@ class UnionFind:
     def __len__(self):
         """Returns the size of the set"""
         return len(self.root()._items)
-    
+
     def __iter__(self):
         """Returns an iterator through the items of the set"""
         return iter(self.root()._items)
-    
-    
+
+
     def add(self, item):
         """Adds an item to the set"""
         self.root()._items.add(item)
-    
+
     def root(self):
         """Returns the root node of a set"""
         node = self
@@ -38,30 +38,30 @@ class UnionFind:
         if node != self:
             self._parent = node
         return node
-    
+
     def same(self, other):
         """Returns True if two sets are the same"""
         return self.root() == other.root()
-    
+
     def union(self, other):
         """Produces a union between this set and another set"""
         root1 = self.root()
         root2 = other.root()
         if root1 == root2:
             return
-        
+
         root1._items.update(root2._items)
         root2._items = set()
         root2._parent = root1
-    
+
     def members(self):
         """Returns members of the set"""
         return self.root()._items
-    
+
     def has(self, item):
         """Returns True if item is in set"""
         return item in self.members()
-    
+
     def size(self):
         """Returns size of the set"""
         return len(self.root()._items)
@@ -101,7 +101,7 @@ def connected_components(components):
 
 
 if __name__ == "__main__":
-    
+
     if True:
         set1 = UnionFind()
         set2 = UnionFind()
@@ -112,7 +112,7 @@ if __name__ == "__main__":
         print len(set1), 1 in set1, set1.has(-1)
         set2.add(3)
         set2.add(4)
-        set2.add(5)    
+        set2.add(5)
         print len(set2)
         set3.add(5)
         set3.add(6)
@@ -121,7 +121,7 @@ if __name__ == "__main__":
         print set1.same(set2)
         set1.union(set2)
         print set1.same(set2)
-        
+
         set1.union(set3)
         print set1.members()
         print len(set1), len(set2)

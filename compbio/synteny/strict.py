@@ -13,7 +13,7 @@ from . import SyntenyBlock, make_orth
 
 def is_contig(db, genes):
     """Returns True if genes are contiguous along chromosome"""
-    
+
     if len(genes) > 1:
         pos = [db.get_region_pos_full(i) for i in genes if i in db.regions]
 
@@ -44,10 +44,10 @@ def orth_regions(db, orth):
 
     # get boundaries of spanning regions
     start1 = min(db.get_region(i).start for i in orth[0])
-    end1 = max(db.get_region(i).end for i in orth[0])    
+    end1 = max(db.get_region(i).end for i in orth[0])
     start2 = min(db.get_region(i).start for i in orth[0])
     end2 = max(db.get_region(i).end for i in orth[0])
-    
+
     gene1 = db.get_region(orth[0][0])
     gene2 = db.get_region(orth[1][0])
 
@@ -56,7 +56,7 @@ def orth_regions(db, orth):
         strand1 = gene1.strand
     else:
         strand1 = 0
-    
+
     if len(orth[1]) == 1:
         strand2 = gene2.strand
     else:
@@ -71,7 +71,7 @@ def orth_regions(db, orth):
 
 
 def find_next_gene(func, genes, index, step):
-    while True:            
+    while True:
         if index >= len(genes):
             return None
         gene = genes[index].data["ID"]
@@ -149,7 +149,7 @@ def can_append_orth(db, block_orth, block_dir, orth, orthdb={}):
             if s1 * s2 != 1:
                 return 0
 
-        return is_parallel(current_right2, orth)        
+        return is_parallel(current_right2, orth)
 
     elif block_dir == -1:
         # block has direction -1
@@ -196,7 +196,7 @@ def find_synteny(species1, species2, regions1, regions2, orths):
         # skip empty chromosomes
         if len(chrom1) == 0:
             continue
-        
+
         # start a new block
         need_new_block = True
         loss_streak = []
@@ -210,9 +210,9 @@ def find_synteny(species1, species2, regions1, regions2, orths):
                 continue
 
             # make ortholog cluster
-            names1 = inpardb[gene1.data["ID"]]            
+            names1 = inpardb[gene1.data["ID"]]
             orth = make_orth(regiondb, names1, names2)
-            
+
             # orthologs are not contiguous, stop block
             if not is_orth_contig(regiondb, orth):
                 loss_streak = []

@@ -10,21 +10,21 @@ The features "5UTR", "3UTR", "inter", "inter_CNS", "intron_CNS" and "exon" are
 optional. All other features will be ignored. The types must have the correct
 capitalization shown here.
 
-<start> <end> 
+<start> <end>
 Integer start and end coordinates of the feature relative to the
 beginning of the sequence named in <seqname>.  <start> must be less than or equal
 to <end>. Sequence numbering starts at 1. Values of <start> and <end> that extend
 outside the reference sequence are technically acceptable, but they are
 discouraged.
 
-<score> 
+<score>
 The score field indicates a degree of confidence in the feature's
 existence and coordinates. The value of this field has no global scale but may
 have relative significance when the <source> field indicates the prediction
 program used to create this annotation. It may be a floating point number or
 integer, and not necessary and may be replaced with a dot.
 
-<frame> 
+<frame>
 0 indicates that the feature begins with a whole codon at the 5' most
 base. 1 means that there is one extra base (the third base of a codon) before the
 first whole codon and 2 means that there are two extra bases (the second and
@@ -59,11 +59,11 @@ from compbio import regionlib
 
 class Gff (object):
     """Most generic GFF format.  Do not assume any format for attributes field"""
-    
+
     def __init__(self):
         self.nondata = set(["comment", "source", "score", "frame", "species"])
-    
-    
+
+
     def format_data(self, region, ignore=set()):
         # unparsed attribute
         return region.data.get(None, "")
@@ -116,7 +116,7 @@ class Gff (object):
 
         # parse attributes
         region.data.update(self.parse_data(tokens[8]))
-        
+
         # parse species
         region.species = region.data.get("species", "")
 
@@ -145,8 +145,8 @@ class Gff (object):
 
 
         out.write("%s\t%s\t%s\t%d\t%d\t%s\t%s\t%s\t%s%s\n" % \
-                  (region.seqname, 
-                   source, 
+                  (region.seqname,
+                   source,
                    region.feature,
                    region.start,
                    region.end,
@@ -155,15 +155,15 @@ class Gff (object):
                    frame,
                    attr,
                    comment))
-    
+
     def build_hierarchy(self, regions):
         """
         Produces a hierachy from a list of regions
         Returns list of regions with no parents (roots).
-        
+
         This base class function does nothing.  See GFF3
         """
-        
+
         # do nothing
         return []
 
@@ -178,10 +178,10 @@ class Gtf (Gff):
 
     def format_data(self, region):
         lst = []
-        
+
         if region.species != "":
             lst.append('species "%s";' % region.species)
-        
+
         for key, val in region.data.iteritems():
             if key not in self.nondata:
                 lst.append('%s "%s";' % (key, str(val)))
@@ -207,11 +207,11 @@ class Gtf (Gff):
             data[key] = val
 
         return data
-    
+
     def build_hierarchy(self, regions):
         """GTF has its own heirarchy system
            It is currently not implemented"""
-        
+
         return []
 
 GTF = Gtf()
@@ -224,10 +224,10 @@ class Gff3 (Gff):
 
     def format_data(self, region):
         lst = []
-        
+
         if region.species != "":
             lst.append("species=%s;" % region.species)
-        
+
         for key, val in region.data.iteritems():
             if key not in self.nondata:
                 lst.append('%s=%s;' % (key, str(val)))
@@ -253,8 +253,8 @@ class Gff3 (Gff):
             data[key] = val
 
         return data
-    
-    
+
+
     def build_hierarchy(self, regions):
         """
         Produces a hierachy from a list of regions
@@ -274,7 +274,7 @@ class Gff3 (Gff):
             if "ID" in region.data:
                 lookup[region.data["ID"]] = region
             roots.add(region)
-        
+
         # build hierarchy
         for region in regions:
             if "Parent" in region.data:
@@ -282,7 +282,7 @@ class Gff3 (Gff):
                 for parent in parents:
                     lookup[parent].add_child(region)
                 roots.remove(region)
-        
+
         # create roots list (regions in same order as they were passed)
         regions2 = [x for x in regions if x in roots]
 
@@ -295,18 +295,18 @@ GFF3 = Gff3()
 # Gff Input/Output
 #
 
-def read_gff(filename, format=GFF3, 
+def read_gff(filename, format=GFF3,
             lineFilter=lambda x: True,
             regionFilter=lambda x: True):
     """
     Read all regions in a GFF file
     """
-    
+
     infile = iterGff(filename,
-                     format, 
+                     format,
                      lineFilter,
                      regionFilter)
-    
+
     return list(infile)
 readGff = read_gff
 
@@ -314,19 +314,19 @@ readGff = read_gff
 def write_gff(filename, regions, format=GFF3):
     """
     Write regions to a file stream
-    
+
     filename - a filename or file stream
     regions  - a list of Region objects
     """
-    
+
     out = util.open_stream(filename, "w")
-    
+
     for region in regions:
         format.write_region(region, out=out)
 writeGff = write_gff
 
 
-def iter_gff(filename, format=GFF3, 
+def iter_gff(filename, format=GFF3,
              line_filter=lambda x: True,
              region_filter=lambda x: True,
              # backcompat
@@ -341,25 +341,25 @@ def iter_gff(filename, format=GFF3,
     if regionFilter is not None:
         region_filter = regionFilter
 
-    
+
     infile = util.open_stream(filename)
     lineno = 0
-    
+
     for line in infile:
         lineno += 1
         line = line.rstrip("\n")
-        
+
         # only continue processing if line is not comment and passes filter
         if len(line) == 0 or line[0] == "#" or not line_filter(line):
             continue
-        
+
         # parse region
         try:
             region = format.read_region(line)
         except Exception, e:
             raise Exception("%s\nError on line %d: %s" % (e,lineno, line))
-            
-        
+
+
         # only return region if region passes filter
         if region_filter(region):
             yield region
@@ -391,7 +391,7 @@ chr2\tTwinscan\texon\t8523\t9711\t.\t-\t.\tID=exon3; Parent=gene1;
     TEST_GFF3_2 = \
 re.sub(" +", "\t", """
 ##gff-version   3
-##sequence-region   ctg123 1 1497228       
+##sequence-region   ctg123 1 1497228
 ctg123	. gene            1000  9000  .  +  .  ID=gene00001;Name=EDEN
 
 ctg123	. TF_binding_site 1000  1012  .  +  .  ID=tfbs00001;Parent=gene00001
@@ -426,8 +426,8 @@ Ctg123	. CDS      7000  7600    .  +  2  ID=cds000043;Parent=mRNA00003;Name=eden
 
     regions = read_gff(strStream(TEST_GFF3_2), format=GFF3)
     regions2 = GFF3.build_hierarchy(regions)
-    
+
     print regions2
     print regions2[0]
-    
+
     pc(read_gff(strStream(TEST_GTF)))

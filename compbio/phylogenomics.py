@@ -11,7 +11,7 @@ from . import genecluster, phylo, fasta, gff
 
 
 def tableExists(cur, tablename):
-   cur.execute("""SELECT name from sqlite_master 
+   cur.execute("""SELECT name from sqlite_master
                   WHERE name = '%s';""" % tablename)
    return cur.fetchone() != None
 
@@ -31,11 +31,11 @@ class PhyloDb:
         self.baseDir = baseDir
         self.treeFileExt = treeFileExt
         self.fastaFileExt = fastaFileExt
-        
+
         # open database
         self.con = sqlite.connect(dbfile, isolation_level="DEFERRED")
         self.cur = self.con.cursor()
-    
+
 
     def close(self):
         self.con.commit()
@@ -47,7 +47,7 @@ class PhyloDb:
 
     def makeGenesTable(self):
         """make genes table"""
-        
+
         self.cur.execute("""
             CREATE TABLE Genes (
                 geneid CHAR(20) PRIMARY KEY,
@@ -56,7 +56,7 @@ class PhyloDb:
                 chrom CHAR(20),
                 start INTEGER,
                 end INTEGER,
-                strand INTEGER,        
+                strand INTEGER,
                 description VARCHAR(1000),
                 famid CHAR(20)
             );""")
@@ -69,36 +69,36 @@ class PhyloDb:
     def clearGenes(self):
         if tableExists(self.cur, "Genes"):
             self.cur.execute("DROP TABLE Genes");
-    
-    
+
+
     def addGenes(self, species, gff_files, region_filter=lambda x: x):
         """populate genes table"""
 
         # clear Genes Table
         if not tableExists(self.cur, "Genes"):
             self.makeGenesTable()
-        
+
 
         dups = set()
-        
+
         util.tic("add genes")
         for sp, gff_file in zip(species, gff_files):
             for region in gff.read_gff(gff_file, regionFilter=region_filter):
                 gene = region.data["ID"]
                 #gene = row["name"]
 
-                if gene in self.fams.genelookup:                
+                if gene in self.fams.genelookup:
                     famid = self.fams.getFamid(gene)
                     if len(self.fams.getGenes(famid)) < 2:
                         famid = "NONE"
                 else:
                     famid = "NONE"
-                
-                
+
+
                 if gene in dups:
                     continue
                 dups.add(gene)
-                
+
                 assert region.start <= region.end
 
                 if gene in self.gene2name:
@@ -108,9 +108,9 @@ class PhyloDb:
                     common = ""
                     desc = ""
 
-                cmd = """INSERT INTO Genes VALUES 
+                cmd = """INSERT INTO Genes VALUES
                                ("%s", "%s", "%s", "%s", %d, %d, %d, "%s", "%s");""" % \
-                            (gene, 
+                            (gene,
                              common,
                              self.gene2species(gene),
                              region.seqname,
@@ -128,7 +128,7 @@ class PhyloDb:
     # Families
 
     def makeFamiliesTable(self):
-        """create families table"""       
+        """create families table"""
 
         self.cur.execute("""CREATE TABLE Families (
                             famid CHAR(20) PRIMARY KEY,
@@ -150,12 +150,12 @@ class PhyloDb:
         if tableExists(self.cur, "Families"):
             self.cur.execute("DROP TABLE Families");
 
-    
+
     def addFamilies(self, eventsfile, discard=[]):
-        
+
         if not tableExists(self.cur, "Families"):
             self.makeFamiliesTable()
-    
+
         util.tic("add families")
         events_tab = tablelib.read_table(eventsfile)
         events_lookup = events_tab.lookup("partid")
@@ -167,26 +167,26 @@ class PhyloDb:
             if famid in discard:
                 util.logger("discarding '%s'" % famid)
                 continue
-            
+
             tree = treelib.read_tree(self.getTreeFile(famid))
             treelen = sum(x.dist for x in tree)
             seqs = fasta.read_fasta(self.getFastaFile(famid))
             seqlen = stats.median(map(len, seqs.values()))
 
-            self.cur.execute("""INSERT INTO Families VALUES 
+            self.cur.execute("""INSERT INTO Families VALUES
                                 ("%s", "%s", %f, %f, %f, %d, %d, %d,
-                                 "%s");""" % 
-                        (row["partid"], 
+                                 "%s");""" %
+                        (row["partid"],
                          familyGeneNames.get(row["partid"], ("", ""))[0],
                          row["famrate"], treelen, seqlen * 3,
                          row["dup"], row["loss"], row["genes"],
                          familyGeneNames.get(row["partid"], ("", ""))[1]))
         util.toc()
-    
-    
-    
+
+
+
     def getFamDescription(self, descriptions):
-    
+
         # TODO: remove this hardcoding
         rmdesc = set([
             "",
@@ -205,17 +205,17 @@ class PhyloDb:
 
         desc = "; ".join(["%s[%d]" % item for item in items])
         return desc
-    
-    
+
+
     def makeFamilyGeneNames(self):
         """Tries to name and describe a family using its genes"""
-    
+
         self.cur.execute("""SELECT g.famid, g.common_name, g.description
                             FROM Genes g
                          """)
-        
+
         fams = util.groupby(lambda x: x[0], self.cur)
-        
+
         familyGeneNames = {}
         for famid, rows in fams.iteritems():
             names = util.unique(["".join([i for i in x
@@ -223,72 +223,72 @@ class PhyloDb:
                             for x in util.cget(rows, 1)
                             if x != ""])
             names.sort()
-            
+
             description = self.getFamDescription(util.cget(rows, 2))
-                        
+
             familyGeneNames[famid] = (",".join(names), description)
         return familyGeneNames
-    
-    
+
+
     #============================================
     # Phylogenetic Events
-    
+
     def makeEventsTable(self):
-        
+
         self.cur.execute("""
             CREATE TABLE Events (
                 famid CHAR(20),
                 species CHAR(20),
-                genes INTEGER,                
+                genes INTEGER,
                 dup INTEGER,
                 loss INTEGER,
                 appear INTEGER
             );""")
-    
-    
+
+
         self.cur.execute("""CREATE INDEX EventsIndex
                             ON Events (famid);""")
-    
-    
-    
+
+
+
     def clearEvents(self):
         if tableExists(self.cur, "Events"):
             self.cur.execute("DROP TABLE Events")
-        
-    
+
+
     def addEvents(self, eventsfile):
-        
+
         if not tableExists(self.cur, "Events"):
             self.makeEventsTable()
-        
+
         util.tic("add events")
         events_tab = tablelib.read_table(eventsfile)
         events_lookup = events_tab.lookup("partid")
-        
+
         self.cur.execute("SELECT famid FROM Families;")
         famids = [x[0] for x in self.cur]
-        
+
         for famid in famids:
             if famid not in events_lookup:
                 continue
             row = events_lookup[famid]
-            
+
             for sp in self.stree.nodes:
                 sp = str(sp)
-            
-                self.cur.execute("""INSERT INTO Events VALUES 
-                                ("%s", "%s", %d, %d, %d, %d);""" % 
+
+                self.cur.execute("""INSERT INTO Events VALUES
+                                ("%s", "%s", %d, %d, %d, %d);""" %
                         (famid, sp,
                          row[sp+"-genes"],
                          row[sp+"-dup"],
                          row[sp+"-loss"],
                          row[sp+"-appear"]))
         util.toc()
-        
-    
+
+
     #============================================
     # GO terms
-    
+
     def makeGoTermsTable(self):
         """add go term table"""
 
@@ -300,7 +300,7 @@ class PhyloDb:
 
         self.cur.execute("""CREATE UNIQUE INDEX IndexGoTerms
                             ON GoTerms (goid);""")
-        
+
         # add gene2goterm table
         self.cur.execute("""CREATE TABLE GeneGoTerms (
                             geneid CHAR(20),
@@ -311,25 +311,25 @@ class PhyloDb:
                             ON GeneGoTerms (goid);""")
         self.cur.execute("""CREATE INDEX Index2GeneGoTerms
                             ON GeneGoTerms (geneid);""")
-                            
+
 
     def clearGoTerms(self):
         if tableExists(self.cur, "GoTerms"):
             self.cur.execute("DROP TABLE GoTerms;")
         if tableExists(self.cur, "GeneGoTerms"):
             self.cur.execute("DROP TABLE GeneGoTerms;")
-        
+
 
     def addGoTerms(self, gofile):
-        
+
         if not tableExists(self.cur, "GoTerms"):
             self.makeGoTermsTable()
-        
+
         util.tic("add go terms")
         goterms = tablelib.read_table(gofile)
         goterms_lookup = goterms.groupby("orf")
         goterms_bygoid = goterms.groupby("goid")
-        
+
         for goterm in goterms_bygoid:
             term = goterms_bygoid[goterm][0]
 
@@ -339,7 +339,7 @@ class PhyloDb:
             self.cur.execute("""INSERT INTO GoTerms VALUES ("%s", "%s")""" %
                              (term["goid"], term["term"]))
 
-        
+
         for gene, terms in goterms_lookup.iteritems():
             for term in terms:
                 self.cur.execute("""INSERT INTO GeneGoTerms VALUES ("%s", "%s");""" %
@@ -348,11 +348,11 @@ class PhyloDb:
 
 
     #================================================
-    # Pfams    
+    # Pfams
 
     def makePfamTable(self):
         """make pfam domains table"""
-        
+
         self.cur.execute("""CREATE TABLE PfamDomains (
                             pfamid CHAR(20) PRIMARY KEY,
                             name CHAR(20),
@@ -361,7 +361,7 @@ class PhyloDb:
 
         self.cur.execute("""CREATE UNIQUE INDEX IndexPfamDomains
                             ON PfamDomains (pfamid);""")
-        
+
         self.cur.execute("""CREATE TABLE GenePfamDomains (
                             geneid CHAR(20),
                             pfamid CHAR(20),
@@ -387,13 +387,13 @@ class PhyloDb:
 
         if not tableExists(self.cur, "PfamDomains"):
             self.makePfamTable()
-        
+
         pfams = tablelib.read_table(pfamfile)
-        
-        for row in pfams:         
+
+        for row in pfams:
             self.cur.execute("""INSERT INTO PfamDomains VALUES ("%s", "%s", "%s");""" %
-                             (row['pfamid'], 
-                              row['pfam_name'], 
+                             (row['pfamid'],
+                              row['pfam_name'],
                               row['pfam_description']))
 
 
@@ -403,18 +403,18 @@ class PhyloDb:
         """add pfam domains"""
 
         if not tableExists(self.cur, "PfamDomains"):
-            self.makePfamTable()      
+            self.makePfamTable()
 
         util.tic("add pfam domains")
 
         pfams = tablelib.read_table(pfamfile)
-        
+
         for row in pfams:
             name = re.sub("\..*$", "", row["pfam_acc"])
-           
+
             self.cur.execute("""INSERT INTO GenePfamDomains VALUES
                                 ("%s", "%s", %d, %d, %f, %f);""" %
-                             (row["locus"], name, row["start"], 
+                             (row["locus"], name, row["start"],
                               row["end"], row["score"], row["evalue"]))
         util.toc()
 

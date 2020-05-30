@@ -50,7 +50,7 @@ def iter_windows(hits, radius):
 
         # populate upstream
         upstream.add(center)
-        
+
         # move center to next hit
         try:
             center = cache.pop_front()
@@ -59,17 +59,17 @@ def iter_windows(hits, radius):
 
         # remove new center from downstream
         downstream.remove(center)
-            
+
 
 def print_window(center, upstream, downstream):
 
     print center[0]
-    print 
+    print
 
     print "\n".join([str(x[0]) for x in upstream])
-    print 
+    print
     print "\n".join([str(x[0]) for x in downstream])
-        
+
     print "-"*70
 
 
@@ -102,12 +102,12 @@ def iter_chroms(hits):
                 hits.push(hit)
                 return
             yield hit
-    
+
     while hits.peek(None) != None:
         yield inner_iter(hits)
-            
-        
-    
+
+
+
 
 def find_syntenic_neighbors(hits, radius, radius2=None):
     """
@@ -131,9 +131,9 @@ def find_syntenic_neighbors(hits, radius, radius2=None):
             syntenic = []
 
             for hit in chain(upstream, downstream):
-                # determine which subjects are wihtin the window of 
-                if (hit[1].species == center[1].species and 
-                    hit[1].seqname == center[1].seqname and 
+                # determine which subjects are wihtin the window of
+                if (hit[1].species == center[1].species and
+                    hit[1].seqname == center[1].seqname and
                     util.overlap(start, end, hit[1].start, hit[1].end)):
                     syntenic.append(hit)
 
@@ -160,7 +160,7 @@ def samedir_hits(hit1, hit2):
 
     return True
 
-        
+
 def cluster_hits(hits, radius1, radius2=None, samedir=False):
     """
     Cluster hits using windows
@@ -175,7 +175,7 @@ def cluster_hits(hits, radius1, radius2=None, samedir=False):
 
     # connected components set
     comps = {}
-    
+
     for hit, syntenic in find_syntenic_neighbors(hits, radius1, radius2):
 
         # get block of hit
@@ -193,7 +193,7 @@ def cluster_hits(hits, radius1, radius2=None, samedir=False):
                 if hit2 not in comps:
                     comps[hit2] = UnionFind([hit2])
                 continue
-            
+
             if block2 is None:
                 comps[hit2] = block
                 block.add(hit2)
@@ -230,5 +230,5 @@ def hits2synteny_block(hits):
     return SyntenyBlock(Region(a.species, a.seqname, "synreg", start1, end1),
                         Region(b.species, b.seqname, "synreg", start2, end2),
                         data={"hits": hits})
-    
-    
+
+

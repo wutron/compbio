@@ -6,7 +6,7 @@ import xml.sax.handler
 def readGo(filename):
     """DEPRECATED"""
     terms = Dict(default=[])
-    
+
     for line in file(filename):
         if "GI:" in line:# or "KEGG:" in line:
             continue
@@ -15,7 +15,7 @@ def readGo(filename):
             terms[tokens[0]].append(tokens[4])
         except:
             print line
-    
+
     return terms
 
 
@@ -44,10 +44,10 @@ class GoTerm:
 class AllTerm(GoTerm):
     def __init__(self):
         GoTerm.__init__(self)
-        
+
         self.accession = "all"
         self.name = "all"
-        self.defintion = "top-level term" 
+        self.defintion = "top-level term"
 
 class GoHandler(xml.sax.handler.ContentHandler):
     def __init__(self, base):
@@ -55,7 +55,7 @@ class GoHandler(xml.sax.handler.ContentHandler):
         self.term = None
         self.elm = ""
         self.base = base
-    
+
     def startElement(self, name, attrs):
         if name == "go:term":
             self.term = GoTerm()
@@ -68,12 +68,12 @@ class GoHandler(xml.sax.handler.ContentHandler):
             if ref.startswith(self.base):
                 self.term.part_of.append(ref[len(self.base):])
         self.elm = name
-    
+
     def endElement(self, name):
         if name == "go:term":
             self.terms[self.term.accession] = self.term
         self.elm = ""
-    
+
     def characters(self, text):
         if self.elm == "go:accession":
             self.term.accession += text
@@ -84,7 +84,7 @@ class GoHandler(xml.sax.handler.ContentHandler):
         elif self.elm == "go:synonym":
             if 'GO' in text:
                 self.term.synonym.append(text)
-        
+
 
 class GoDatabase:
     def __init__(self, filename):
@@ -104,27 +104,27 @@ class GoDatabase:
         parser.parse(filename)
 
         self.terms = dh.terms
-        
+
         # add top level term
         self.terms["all"] = AllTerm()
-    
-    
+
+
     def getAllParents(self, goid, touched=None, count=0, ret=True):
         if touched == None:
             touched = {}
-        
+
         if goid in self.terms:
             term = self.terms[goid]
             parents =  term.is_a + term.part_of
-            
+
             for parent in parents:
                 if parent not in touched and parent != "all":
                     touched[parent] = count
                     count += 1
-            
+
             for parent in parents:
                 self.getAllParents(parent, touched, count, False)
-        
+
         if ret:
             parents = touched.keys()
             parents.sort(key=lambda x: touched[x])

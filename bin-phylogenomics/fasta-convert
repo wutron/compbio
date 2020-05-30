@@ -24,7 +24,7 @@ if conf.phylip:
     labels = phylip.write_phylip_align(
         file(conf.phylip, "w"), seqs,
         strip_names=not conf.nostrip)
-    
+
     if conf.label:
         util.write_list(conf.label, labels)
 

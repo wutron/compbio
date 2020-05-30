@@ -7,7 +7,7 @@ from compbio import phylo
 
 def draw_stree(canvas, stree, slayout,
                yscale=100,
-               stree_width=.8, 
+               stree_width=.8,
                stree_color=(.4, .4, 1),
                snode_color=(.2, .2, .4)):
 
@@ -15,7 +15,7 @@ def draw_stree(canvas, stree, slayout,
     for node in stree:
         x, y = slayout[node]
         px, py = slayout[node.parent]
-        
+
         # draw branch
         w = yscale * stree_width / 2.0
         canvas.polygon([px, py-w,
@@ -31,12 +31,12 @@ def draw_stree(canvas, stree, slayout,
             x, y = slayout[node]
             canvas.line(x, y-w, x, y+w, color=snode_color,
                         style="stroke-dasharray: 1, 1")
-    
+
 
 
 def draw_tree(tree, brecon, stree,
               xscale=100, yscale=100,
-              leaf_padding=10, 
+              leaf_padding=10,
               label_size=None,
               label_offset=None,
               font_size=12,
@@ -61,7 +61,7 @@ def draw_tree(tree, brecon, stree,
     # set defaults
     font_ratio = 8. / 11.
 
-    
+
     if label_size is None:
         label_size = .7 * font_size
 
@@ -144,11 +144,11 @@ def draw_tree(tree, brecon, stree,
         deltax2 = x - px
         deltay2 = slope * deltax2
         offset = py + deltay2
-        
+
         frac = (yorders[node] + 1) / float(max(len(ylists[snode]), 1) + 1)
         y = offset + (frac - .5) * stree_width * yscale
 
-        
+
         layout[node] = (x, y)
 
         if y > max(l[1] for l in slayout.values()) + 50:
@@ -166,7 +166,7 @@ def draw_tree(tree, brecon, stree,
     max_slabel_size = max(len(x.name)
         for x in stree.leaves()) * font_ratio * stree_font_size
 
-    
+
 
     '''
     if colormap == None:
@@ -174,7 +174,7 @@ def draw_tree(tree, brecon, stree,
             node.color = (0, 0, 0)
     else:
         colormap(tree)
-    
+
     if stree and gene2species:
         recon = phylo.reconcile(tree, stree, gene2species)
         events = phylo.label_events(tree, recon)
@@ -182,28 +182,28 @@ def draw_tree(tree, brecon, stree,
     else:
         events = None
         losses = None
-    
+
     # layout tree
     if layout is None:
         coords = treelib.layout_tree(tree, xscale, yscale, minlen, maxlen)
     else:
         coords = layout
     '''
-    
+
     xcoords, ycoords = zip(* slayout.values())
     maxwidth = max(xcoords) + max_label_size + max_slabel_size
     maxheight = max(ycoords) + .5 * yscale
-    
-    
+
+
     # initialize canvas
     if canvas is None:
         canvas = svg.Svg(util.open_stream(filename, "w"))
         width = int(rmargin + maxwidth + lmargin)
         height = int(tmargin + maxheight + bmargin)
-        
+
         canvas.beginSvg(width, height)
         canvas.beginStyle("font-family: \"Sans\";")
-        
+
         if autoclose == None:
             autoclose = True
     else:
@@ -211,10 +211,10 @@ def draw_tree(tree, brecon, stree,
             autoclose = False
 
     canvas.beginTransform(("translate", lmargin, tmargin))
-    
+
     draw_stree(canvas, stree, slayout,
                yscale=yscale,
-               stree_width=stree_width, 
+               stree_width=stree_width,
                stree_color=stree_color,
                snode_color=snode_color)
 
@@ -222,7 +222,7 @@ def draw_tree(tree, brecon, stree,
     for node in stree:
         x, y = slayout[node]
         if node.is_leaf():
-            canvas.text(snames[node.name], 
+            canvas.text(snames[node.name],
                         x + leaf_padding + max_label_size,
                         y+stree_font_size/2., stree_font_size,
                         fillColor=snode_color)
@@ -252,7 +252,7 @@ def draw_tree(tree, brecon, stree,
             y2 = (y*.5 + py*.5)
             x3 = (x*.5 + px*.5) - arch
             y3 = (y*.5 + py*.5)
-            
+
             canvas.write("<path d='M%f %f C%f %f %f %f %f %f' %s />\n " %
                          (x, y, x2, y2,
                           x3, y3, px, py,
@@ -274,23 +274,23 @@ def draw_tree(tree, brecon, stree,
             canvas.rect(x - o, y - o, event_size, event_size,
                         fillColor=trans_color,
                         strokeColor=trans_color_border)
-        
+
 
     # draw tree leaves
     for node in tree:
         x, y = layout[node]
         if node.is_leaf():
-            canvas.text(node.name, 
+            canvas.text(node.name,
                         x + leaf_padding, y+font_size/2., font_size,
                         fillColor=(0, 0, 0))
 
-        
+
     canvas.endTransform()
-    
+
     if autoclose:
         canvas.endStyle()
         canvas.endSvg()
-    
+
     return canvas
 
 

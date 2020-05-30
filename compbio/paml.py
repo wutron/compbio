@@ -12,13 +12,13 @@ from . import fasta, phylip, nexus
 
 def removeStopCodons(seq, stops=None):
     assert len(seq) % 3 == 0
-    
+
     # ensure stop codons are defined
     if stops is None:
-        stops = set(["TAA", "TAG", "TGA"])          
-    
+        stops = set(["TAA", "TAG", "TGA"])
+
     seq2 = []
-    
+
     for i in range(0, len(seq), 3):
         codon = seq[i:i+3].upper()
         if codon in stops:
@@ -29,10 +29,10 @@ def removeStopCodons(seq, stops=None):
 
 
 def dndsMatrix(seqs, saveOutput="", verbose=False, safe=True):
-    
+
     if safe:
         seqs = alignlib.mapalign(seqs, valfunc=removeStopCodons)
-    
+
     phylip.validate_seqs(seqs)
     cwd = phylip.create_temp_dir()
 
@@ -40,20 +40,20 @@ def dndsMatrix(seqs, saveOutput="", verbose=False, safe=True):
 
     # create input
     labels = phylip.write_phylip_align(file("seqfile.phylip", "w"), seqs)
-    util.write_list(file("labels", "w"), labels)    
-    
+    util.write_list(file("labels", "w"), labels)
+
     # create control file
     out = file("yn00.ctl", "w")
     print >>out, "seqfile = seqfile.phylip"
     print >>out, "outfile = outfile"
     out.close()
-    
+
     # run yn00
     if verbose:
         os.system("yn00 yn00.ctl")
     else:
         os.system("yn00 yn00.ctl > /dev/null")
-    
+
     try:
         dnmat = phylip.read_dist_matrix("2YN.dN")
         dsmat = phylip.read_dist_matrix("2YN.dS")
@@ -65,22 +65,22 @@ def dndsMatrix(seqs, saveOutput="", verbose=False, safe=True):
             dsmat = labels, [[0] * len(labels)] * len(labels)
         else:
             raise Exception("could not read dn or ds matrices")
-    
+
     if saveOutput != "":
         phylip.save_temp_dir(cwd, saveOutput)
     else:
         phylip.cleanup_temp_dir(cwd)
-    
+
     util.toc()
-    
+
     return dnmat, dsmat
 
 
 def pamp(seqs, tree, seqtype="dna", saveOutput="", verbose=False, safe=True):
-    
+
     if safe and seqtype == "dna":
         seqs = alignlib.mapalign(seqs, valfunc=removeStopCodons)
-    
+
     phylip.validate_seqs(seqs)
     cwd = phylip.create_temp_dir()
 
@@ -94,12 +94,12 @@ def pamp(seqs, tree, seqtype="dna", saveOutput="", verbose=False, safe=True):
     treefile.write("%d 1\n" % len(tree.leaves()))
     tree.write(treefile, writeData=lambda x: "")
     treefile.close()
-    
+
     # create control file
     out = file("pamp.ctl", "w")
     print >>out, "seqfile = align"
     print >>out, "treefile = tree"
-    print >>out, "outfile = out"    
+    print >>out, "outfile = out"
 
     if seqtype == "dna":
         print >>out, "seqtype = 0"
@@ -110,7 +110,7 @@ def pamp(seqs, tree, seqtype="dna", saveOutput="", verbose=False, safe=True):
     print >>out, "ncatG = 8"
     print >>out, "nhomo = 0"
     out.close()
-    
+
     # run pamp
     if verbose:
         os.system("pamp paml.ctl")
@@ -122,16 +122,16 @@ def pamp(seqs, tree, seqtype="dna", saveOutput="", verbose=False, safe=True):
     aln.write("recon.mfa")
     tree2 = res.getBranchNames()
     renameTreeAlign(tree2, aln)
-    
+
     if saveOutput != "":
         phylip.save_temp_dir(cwd, saveOutput)
     else:
         phylip.cleanup_temp_dir(cwd)
-    
+
     util.toc()
 
     return tree2, aln
-    
+
 
 def renameTreeAlign(tree, align):
     """Rename the ancestral nodes of a tree"""
@@ -177,46 +177,46 @@ def countTreeSub(tree, align):
             node.dist = util.count(lambda i: seq1[i] != seq2[i],
                                    xrange(align.alignlen()))
 
-        
 
-def align2tree(seq, seqtype="dna", 
+
+def align2tree(seq, seqtype="dna",
                saveOutput="", usertree=None, verbose=False, safe=True):
     if safe:
         seqs = alignlib.mapalign(seqs, valfunc=removeStopCodons)
-    
+
     # create input
     labels = phylip.write_phylip_align(file("seqfile.phylip", "w"), seqs)
-    
+
     # set verbose level
     if verbose:
         verbose_num = 1
     else:
         verbose_num = 0
-        
+
     if usertree:
         runmode = 0
     else:
         runmode = 2
-    
+
     if seqtype == "dna":
         seqtype = 1
     else:
         seqtype = 2
-    
+
     # create control file
     out = file("yn00.ctl", "w")
     print >>out, util.evalstr("""
     seqfile = seqfile.phylip
     treefile = out.tree
     outfile = out.stats
-    
+
     noisy = 9
     verbose = ${verbose_num}
     runmode = ${runmode}
-    
+
     seqtype = ${seqtype}
     CodonFreq = 2
-    
+
     """)
 
 
@@ -230,10 +230,10 @@ def read_tree_data(node, data):
         dist = tokens[0]
     else:
         other, dist = tokens
-        
+
     # set branch length
     node.dist = float(dist)
-            
+
     if len(other) > 0:
 
         # read branch labels: integers starting from 0
@@ -251,7 +251,7 @@ def write_tree_data(node):
 
     text += ":%f" % node.dist
     return text
-    
+
 
 def read_tree(treefile):
     """Read a tree for PAML, includes branch labels"""
@@ -275,12 +275,12 @@ class PamlResults (object):
         else:
             return iter(lines)
 
-        
+
     def iterBebLines(self, lines=None):
         """Iterate over the BEB section of PamlResults"""
 
         lines = self.setupLines(lines)
-        
+
         for line in lines:
             if line.startswith("Bayes Empirical Bayes"):
                 # skip next four lines
@@ -289,27 +289,27 @@ class PamlResults (object):
                 stream.next()
                 stream.next()
                 break
-        
+
         for line in lines:
             if line == "\n":
                 break
             yield line
-        
+
     def getBeb(self, lines=None):
         """Iterate over a parsed matrix of BEB data"""
-        
+
         if lines is None:
             lines = self.iterBebLines()
-        
+
         for line in lines:
             pos, aa, prob, omega, plusmin, omega_stdev = line.rstrip().split()
             yield [int(pos), aa, float(prob.replace("*", "")),
                         float(omega), float(omega_stdev)]
-    
+
     def getBebTable(self, lines=None):
         """Returns a table of BEB data"""
-        
-        return tablelib.Table(list(self.getBeb(lines)), 
+
+        return tablelib.Table(list(self.getBeb(lines)),
                               headers=["pos", "aa", "prob", "omega",
                                        "omega_stdev"],
                               types={"pos": int,
@@ -317,19 +317,19 @@ class PamlResults (object):
                                      "prob": float,
                                      "omega": float,
                                      "omega_stdev": float})
-    
-    
+
+
     def getM0_dnds(self, lines=None, header=True):
         """Return the omega value from the Model 0 section"""
-        
+
         omega = None
         dn = None
         ds = None
         dt = None
         kappa = None
 
-        lines = self.setupLines(lines)        
-        
+        lines = self.setupLines(lines)
+
         if header:
             for line in lines:
                 if line.startswith("Model 0"):
@@ -337,34 +337,34 @@ class PamlResults (object):
             else:
                 # paml file does not contain model 0
                 return None, None, None, None, None
-        
+
         for line in lines:
             if line.startswith("omega (dN/dS) ="):
                 omega = float(line.rstrip().split()[-1])
-            
+
             elif line.startswith("kappa (ts/tv) ="):
                 kappa = float(line.rstrip().split()[-1])
-            
+
             elif line.startswith("tree length for dN:"):
                 dn = float(line.split(":")[1])
-            
+
             elif line.startswith("tree length for dS:"):
                 ds = float(line.split(":")[1])
-                
+
             elif line.startswith("tree length ="):
                 dt = float(line.split("=")[1])
-            
+
             # quit if entering next model
             elif line.startswith("Model"):
                 break
-                
+
         assert None not in (omega, dn, ds, dt, kappa)
         return omega, dn, ds, dt, kappa
-    
-    
+
+
     def get_ng_dnds(self, lines=None):
         """Return the Nei & Gojobori 1986 dN, dS  matrices"""
-        
+
         genes1 = []
         genes2 = []
         omegas = []
@@ -372,39 +372,39 @@ class PamlResults (object):
         ds = []
 
         lines = self.setupLines(lines)
-        
+
         for line in lines:
             if line.startswith("Nei & Gojobori 1986"):
                 break
         else:
             # paml file does not contain Nei Gojobori matrix
             return None, None, None, None, None
-        
+
         # skip to first blank line
         for line in lines:
             if len(line) <= 1:
                 break
-        
+
         genes = []
         pattern = re.compile("[ \t\(\)]+")
         for line in lines:
             # quit on first blank line
             if len(line) <= 1:
                 break
-            
+
             tokens = re.split(pattern, line.rstrip("\n\t )"))
             if len(tokens) != 1 + 3 * len(genes):
                 # early truncation
                 return None, None, None, None, None
-            
-            genes.append(tokens[0])           
+
+            genes.append(tokens[0])
             for i in xrange(0, 3*(len(genes) - 1), 3):
                 genes1.append(tokens[0])
                 genes2.append(genes[i/3])
                 omegas.append(float(tokens[1+i]))
                 dn.append(float(tokens[1+i+1]))
                 ds.append(float(tokens[1+i+2]))
-        
+
         return genes1, genes2, omegas, dn, ds
 
 
@@ -425,7 +425,7 @@ class PamlResults (object):
     def getM2_lnl(self, lines=None):
 
         # positive selection
-        lines = self.setupLines(lines)        
+        lines = self.setupLines(lines)
         for line in lines:
             if line.startswith("Model 2:"):
                 break
@@ -464,8 +464,8 @@ class PamlResults (object):
         dists = map(float, lines.next().strip().split())
 
         # add nodes to tree
-        tree = treelib.Tree()        
-        for name in set(util.flatten(names)):                    
+        tree = treelib.Tree()
+        for name in set(util.flatten(names)):
             tree.add(treelib.TreeNode(name))
 
         # link up nodes
@@ -493,7 +493,7 @@ class PamlResults (object):
                 break
         else:
             raise Exception("no reconstruction found")
-                      
+
 
         aln = fasta.FastaDict()
 
@@ -510,7 +510,7 @@ class PamlResults (object):
 
             seq = rest.strip().replace(" ", "")
             aln[name] = seq
-            
+
             # end of block
             if len(line) <= 1:
                 break
@@ -521,12 +521,12 @@ class PamlResults (object):
     def get_branch_site_params(self, lines=None):
         """Return the parameters found in the branch site model"""
         lines = self.setupLines(lines)
-        
+
         # find start of params
         for line in lines:
             if line.startswith("dN/dS for site classes (K=4)"):
                 lines.next() # skip blank line
-                line = lines.next() 
+                line = lines.next()
                 break
         else:
             raise Exception("no reconstruction found")
@@ -546,10 +546,10 @@ class PamlResults (object):
         tokens = line.rstrip().split()
         omegas = dict(zip(site_names,
                           map(float, tokens[2:6])))
-        
+
         return proportions, omegas
-                      
-            
+
+
 
 
 def lrt_M1M2(m1lnl, m2lnl):
@@ -579,14 +579,14 @@ def lrt_branch_site(lnl_null, lnl_alt):
     """
 
     #assert lnl_alt >= lnl_null, (lnl_alt, lnl_null)
-    
+
     import rpy
 
     dl = 2 * (lnl_alt - lnl_null)
     pvalue = rpy.r.pchisq(dl, df=1, lower_tail=False) / 2.0
     return pvalue
 
-        
+
 
 # Example codeml.ctl
 """
@@ -626,7 +626,7 @@ def lrt_branch_site(lnl_null, lnl_alt):
 
     fix_kappa = 0  * 1: kappa fixed, 0: kappa to be estimated
         kappa = 2  * initial or fixed kappa
-    fix_omega = 0  * 1: omega or omega_1 fixed, 0: estimate 
+    fix_omega = 0  * 1: omega or omega_1 fixed, 0: estimate
         omega = .4 * initial or fixed omega, for codons or codon-based AAs
 
     fix_alpha = 1  * 0: estimate gamma shape parameter; 1: fix it at alpha
@@ -644,8 +644,8 @@ def lrt_branch_site(lnl_null, lnl_alt):
 
 
 * Genetic codes: 0:universal, 1:mammalian mt., 2:yeast mt., 3:mold mt.,
-* 4: invertebrate mt., 5: ciliate nuclear, 6: echinoderm mt., 
-* 7: euplotid mt., 8: alternative yeast nu. 9: ascidian mt., 
+* 4: invertebrate mt., 5: ciliate nuclear, 6: echinoderm mt.,
+* 7: euplotid mt., 8: alternative yeast nu. 9: ascidian mt.,
 * 10: blepharisma nu.
 * These codes correspond to transl_table 1 to 11 of GENEBANK.
 """

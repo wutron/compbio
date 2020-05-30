@@ -18,7 +18,7 @@ o = optparse.OptionParser()
 o.add_option("-p", "--part", dest="part", metavar="<part file>")
 o.add_option("", "--famid", dest="famid", action="store_true", default=False,
              help="first entry in line is family name")
-    
+
 o.add_option("-o", "--outdir", dest="outdir", metavar="<output directory>")
 o.add_option("-F", "--outext=", dest="fastaext",
              metavar="<output fasta extension>",
@@ -48,7 +48,7 @@ if conf.famid:
 else:
     # issue new famids based on line number
     famids = map(str, range(len(parts)))
-    
+
 
 # clear fasta files
 if not conf.no_clear:
@@ -73,9 +73,9 @@ for f in fa_files:
 
     if f.endswith(".gz"):
         f = os.popen("zcat '%s'" % f)
-    
+
     seqs = fasta.read_fasta(f, useIndex=False)
-   
+
     for famid, part in izip(famids, parts):
         seqfile = os.path.join(conf.outdir, famid, famid + conf.fastaext)
         seqs2 = seqs.get(part)
@@ -85,7 +85,7 @@ for f in fa_files:
             seqs2.write(out)
             out.close()
 
-    
+
     util.toc()
 util.toc()
 

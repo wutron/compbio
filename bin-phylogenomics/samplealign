@@ -30,7 +30,7 @@ oldlen = aln.alignlen()
 # sample columns
 cols = [random.randint(0, oldlen)
         for i in xrange(newlen)]
-    
+
 aln2 = alignlib.subalign(aln, cols)
 aln2.write()
 

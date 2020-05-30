@@ -25,7 +25,7 @@ def mktemp():
     os.close(fd)
     return filename
 
-    
+
 def write_marg_input(out, sites):
     out = util.open_stream(out, "w")
 
@@ -64,7 +64,7 @@ def read_marg_arg(infile, nseqs, length, name_format, sites=None, nmuts=None):
     else:
         assert mutpos is not None
         mutpos = range(nmuts+1)
-    
+
 
     # make leaves
     lineages = {}
@@ -76,7 +76,7 @@ def read_marg_arg(infile, nseqs, length, name_format, sites=None, nmuts=None):
     for line in infile:
         if line.startswith("ARG"):
             break
-        
+
         tokens = line.rstrip().split(" ")
         age = int(tokens[0])
         kind = tokens[1]
@@ -184,7 +184,7 @@ else:
     util.makedirs(dirpath)
     for i, arg in enumerate(args):
         arglib.write_arg("%s.%d.arg" % (conf.output, i), arg)
-    
+
 
 os.remove(marg_input)
 

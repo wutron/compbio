@@ -10,7 +10,7 @@ class Region (object):
     """
     A generic sequence region
     """
-    
+
     def __init__(self, species="",
                        seqname="",
                        feature="",
@@ -20,7 +20,7 @@ class Region (object):
                        data={}):
         if isinstance(species, Region):
             region = species
-            
+
             # copy information from other region
             self.species = region.species
             self.seqname = region.seqname
@@ -31,7 +31,7 @@ class Region (object):
             self.data   = copy.copy(region.data)
             self.parents = copy.copy(region.parents)
             self.children = copy.copy(region.children)
-        
+
         else:
             self.species = species
             self.seqname = seqname
@@ -45,19 +45,19 @@ class Region (object):
 
     def __iter__(self):
         return iter(self.children)
-    
-    
+
+
     def __getitem__(self, key):
         return self.children[key]
-    
-    
+
+
     def __setitem__(self, key,  val):
         self.children[key] = val
-    
+
     def __delitem__(self, key):
         del self.children[key]
-    
-        
+
+
     def length(self):
         return self.end - self.start + 1
 
@@ -67,12 +67,12 @@ class Region (object):
         child.parents.append(self)
         self.children.append(child)
 
-    
+
     def remove_child(self, child):
         child.parents.remove(self)
         self.children.remove(child)
 
-    
+
     def __repr__(self):
         return self.__str__()
 
@@ -84,22 +84,22 @@ class Region (object):
             strand = "+"
         else:
             strand = "-"
-        
+
         data = str(self.data)
-        
-        
+
+
         text = ["[%s\t%s\t%s\t%d\t%d\t%s\t%s]" % \
             (self.species,
-             self.seqname, 
+             self.seqname,
              self.feature,
              self.start,
              self.end,
              strand,
              data)]
-        
+
         for child in self.children:
             text.append(str(child))
-        
+
         return "\n".join(text)
 
 
@@ -108,38 +108,38 @@ def find_region_pos(regions, pos):
     """Find the first region that starts after 'pos' in a sorted list of 'regions'"""
     low, top = util.binsearch(regions, pos-1, lambda a,b: cmp(a.start, b))
     return top
-    
+
 
 
 def find_region(regions, region):
     """Find a region in a sorted list of 'regions'"""
-    low, ind = util.binsearch(regions, region.start-1, 
+    low, ind = util.binsearch(regions, region.start-1,
                                     lambda a,b: cmp(a.start, b))
     if ind == None:
         return None
-    
+
     while ind < len(regions) and regions[ind] != region:
         ind += 1
-    
+
     if ind == len(regions):
         return None
     else:
         return ind
-    
+
 
 # TODO: add reverse iteration
 def iter_chrom(regions, start, end, index=None):
     """An iterator that walks down a sorted list of regions"""
 
     nregions = len(regions)
-    
+
     # find index
     if index == None:
         # find starting index by binary search
         index = find_region_pos(regions, start)
         if index == None:
             return
-    
+
     # walk down chromosome
     while  (index < nregions) and \
            (regions[index].start < end):
@@ -150,7 +150,7 @@ def iter_chrom(regions, start, end, index=None):
 
 def overlap(region1, region2):
     """Tests whether two regions overlap"""
-    
+
     return region1.seqname == region2.seqname and \
            region1.species == region2.species and \
            util.overlap(region1.start, region1.end,
@@ -160,7 +160,7 @@ def overlap(region1, region2):
 
 def overlaps(region1, regions):
     """Find the regions in list 'regions' that overlap region1"""
-    
+
     return [x for x in regions if overlap(region1, x)]
 
 
@@ -174,11 +174,11 @@ def groupby_overlaps(regions, bygroup=True):
     group = None
     groupnum = -1
     for reg in regions:
-        
+
         if (reg.species != species or
             reg.seqname != seqname or
             reg.start > end):
-            
+
             # start new group
             species = reg.species
             seqname = reg.seqname
@@ -203,21 +203,21 @@ def groupby_overlaps(regions, bygroup=True):
             else:
                 yield (groupnum, reg)
 
-    
-        
-        
+
+
+
 
 
 def region_lookup(regions, key="ID"):
     """
     Returns a dict lookup of regions based on a key (default: ID)
     """
-    
+
     lookup = {}
 
     for region in regions:
         rkey = None
-        
+
         if isinstance(key, basestring):
             if key in region.data:
                 rkey = region.data[key]
@@ -227,7 +227,7 @@ def region_lookup(regions, key="ID"):
         if rkey is not None:
             assert rkey not in lookup, Exception("duplicate key '%s'" % rkey)
             lookup[rkey] = region
-            
+
 
     return lookup
 
@@ -235,15 +235,15 @@ def region_lookup(regions, key="ID"):
 
 class RegionDb (object):
     """Organize regions for easy access"""
-    
+
     # TODO: this is starting to look like my Matching class in genomeutil :)
-    
+
     def __init__(self, regions):
-        
+
         self.sp2chroms = {} # {species -> {chrom -> regions sorted by start}}
         self.regions = {}   # {region_id -> region}
         self.positions = {} # {region_id -> (species, chrom, position)}
-        
+
 
         # sort regions into chromosomes
         for region in regions:
@@ -254,7 +254,7 @@ class RegionDb (object):
             # record region id
             if "ID" in region.data:
                 self.regions[region.data["ID"]] = region
-            
+
         # sort each chromosome by start position
         for sp, chroms in self.sp2chroms.iteritems():
             for chrom, regs in chroms.iteritems():
@@ -277,14 +277,14 @@ class RegionDb (object):
     def get_species(self):
         """Returns all species in database"""
         return self.sp2chroms.keys()
-    
+
     def get_chroms(self, species):
         """Get list of chromosomes for a given species"""
         return self.sp2chroms[species]
 
     def get_regions(self, species, chrom):
         if species not in self.sp2chroms:
-            return []        
+            return []
         return self.sp2chroms[species].get(chrom, [])
 
     def get_all_regions(self):
@@ -294,7 +294,7 @@ class RegionDb (object):
         return self.regions.itervalues()
 
     def get_region(self, regionid):
-        """Returns the region with regionid""" 
+        """Returns the region with regionid"""
         return self.regions[regionid]
 
     def has_region(self, regionid):

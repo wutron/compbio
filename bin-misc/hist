@@ -13,7 +13,7 @@ for arg in sys.argv[1:]:
     else:
         infile = file(arg)
         break
-    
+
 
 # read data
 lines = []

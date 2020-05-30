@@ -40,7 +40,7 @@ for infile in files:
 # write out best bi-directional hits
 for gene1 in best:
     gene2 = best[gene1][1]
-    
+
     # see if the best is bidirectional
     # but only print one direction
     if gene1 == best[gene2][1] and gene1 < gene2:

@@ -31,7 +31,7 @@ for line in sys.stdin:
         regionid += 1
         last_chrom = row[chrom]
         last_end = -1
-    
+
     last_end = max(last_end, e)
 
     print str(regionid) + "\t" + "\t".join(row)

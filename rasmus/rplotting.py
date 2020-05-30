@@ -54,7 +54,7 @@ class LazyR (object):
             self.__rpy = rpy
             self.__rpy_version = 2
             self._process_events()
-        globals()[self.__name] = rpy.r        
+        globals()[self.__name] = rpy.r
 
     def __getattr__(self, attr):
         if not self.__setup:
@@ -63,7 +63,7 @@ class LazyR (object):
 
     def __call__(self, *args, **kargs):
         if not self.__setup:
-            self._setup()        
+            self._setup()
         return self.__rpy.r(*args, **kargs)
 
 
@@ -73,7 +73,7 @@ rp = LazyR("rp")
 
 def rplot_start(filename, *args, **kargs):
     """Starts a new PDF file"""
-    
+
     global _rplot_pdf
     if "useDingbats" not in kargs:
         kargs["useDingbats"] = False
@@ -82,13 +82,13 @@ def rplot_start(filename, *args, **kargs):
 
 def rplot_end(show=False):
     """Ends a PDF file"""
-    
+
     global _rplot_pdf, _rplot_temp
     rp.dev_off()
-    
+
     if show:
         if _rplot_temp:
-            os.system("('%s' '%s'; rm '%s') &" % 
+            os.system("('%s' '%s'; rm '%s') &" %
                       (_rplot_viewer, _rplot_pdf, _rplot_pdf))
         else:
             os.system("('%s' '%s') &" % (_rplot_viewer, _rplot_pdf))
@@ -103,17 +103,17 @@ def rplot(func, *args, **kargs):
 
     Makes sensible plot labels and manages pdf plotting
     """
-    
+
     global _rplot_pdf, _rplot_temp
-    
+
     kargs.setdefault("xlab", "")
     kargs.setdefault("ylab", "")
     kargs.setdefault("main", "")
-    
+
     # parse my args
     if "pdf" in kargs:
         _rplot_pdf = kargs["pdf"]
-        _rplot_temp = True  
+        _rplot_temp = True
         del kargs["pdf"]
         rp.pdf(file=_rplot_pdf)
         self_open = True
@@ -125,20 +125,20 @@ def rplot(func, *args, **kargs):
         show = kargs["show"]
         del kargs["show"]
     else:
-        show = False           
+        show = False
 
     # prepare tempfile if needed
     if _rplot_pdf is None:
         f, _rplot_pdf = temporaryfile.mkstemp(".pdf", "rplot_")
         _rplot_temp = True
-        os.close(f)        
+        os.close(f)
         rp.pdf(file=_rplot_pdf)
-        
+
         # force show for tempfile
         self_open = True
         show = True
-            
-    
+
+
     if "pdf_close" in kargs:
         close = kargs["pdf_close"]
         del kargs["pdf_close"]
@@ -147,11 +147,11 @@ def rplot(func, *args, **kargs):
             close = True
         else:
             close = False
-    
-    
+
+
     # make R call
     rp.__getattr__(func)(*args, **kargs)
-    
+
     # close PDF and show
     if close:
         if _rplot_pdf is not None:
@@ -162,7 +162,7 @@ def rplotfunc(self, cmd, func, start, end, step, **options):
     """Plots a function using R"""
     x = []
     y = []
-    
+
     while start < end:
         try:
             y.append(func(start))
@@ -171,7 +171,7 @@ def rplotfunc(self, cmd, func, start, end, step, **options):
             pass
             start += step
     rplot(cmd, x, y, **options)
-    
+
 
 def rhist(*args, **kargs):
     """Plots a histogram"""

@@ -3,7 +3,7 @@ import sys, re
 import parser
 from parser import quote, Sym
 
-    
+
 
 def parse(string, env=None):
     """Parse an S-expression from a string"""
@@ -80,14 +80,14 @@ def write(sexp, out=sys.stdout):
                 out.write(" ")
         except StopIteration:
             pass
-                
+
         out.write(")")
 
     else:
         raise Exception("item with unknown type in sexp '%s'" % repr(sexp))
 
 
-def write_pretty(sexp, out=sys.stdout, 
+def write_pretty(sexp, out=sys.stdout,
                  _prefix=0, _first=True):
     """Write an S-expression to a file"""
 
@@ -128,7 +128,7 @@ def write_pretty(sexp, out=sys.stdout,
             a = it.next()
             while True:
                 if i < 1:
-                    sexp_size = write_pretty(a, out, 
+                    sexp_size = write_pretty(a, out,
                                              _prefix=_prefix, _first=False)
                     i += 1
                     size += sexp_size
@@ -138,15 +138,15 @@ def write_pretty(sexp, out=sys.stdout,
                     size += 1
                     _prefix += 1
                 else:
-                    size2 = write_pretty(a, out, 
+                    size2 = write_pretty(a, out,
                                          _prefix=_prefix, _first=(i >= 2))
                     i += 1
                     a = it.next()
                     out.write("\n")
-                    
+
         except StopIteration:
             pass
-                
+
         out.write(")")
         return size + size2 + 1
 
@@ -159,7 +159,7 @@ def write_pretty(sexp, out=sys.stdout,
 
 def sexp2dict(sexp, env=None):
     """Parse an sexp into a dictionary"""
-    
+
     dct = {}
     it = iter(sexp)
     it.next() # skip first word
@@ -172,7 +172,7 @@ def sexp2dict(sexp, env=None):
 
 
 def dict2sexp(dct, env=None, tag="dict"):
-    
+
     lst = [Sym(tag)]
     for key, value in dct.iteritems():
         lst.append([prepare(key, env), prepare(value, env)])
@@ -186,7 +186,7 @@ if __name__ == "__main__":
     from StringIO import StringIO
 
     print parse('(+ 223 36.6 (aaa) bbb \"ccc\")')
-    s = parse(r'''(if (> 2 var) (cons a b) 
+    s = parse(r'''(if (> 2 var) (cons a b)
                       (display "no \"quoted\" " 22 (#f #t)) )''')
     print s
 
@@ -205,13 +205,13 @@ if __name__ == "__main__":
                     ("dict" (a b) (c d)))''',
                 {"dict": sexp2dict})
 
-    write_pretty(dict2sexp({"aaa": 111, 
+    write_pretty(dict2sexp({"aaa": 111,
                             True: (((22, "abc", "adcd"), 9999),
                                    "www",
-                                   (Sym("hello"), [], ("hi", 
+                                   (Sym("hello"), [], ("hi",
                                                    5555,
                                                    "---")
-                                     )), 
+                                     )),
                             78: False}))
     print
 
@@ -224,7 +224,7 @@ if __name__ == "__main__":
              (score2 (quote (+ 2 (* 3 7))))
              )
 
-    ''', {"account": sexp2dict, 
+    ''', {"account": sexp2dict,
           "date": lambda x,e: tuple(x[1:]),
           "+": lambda x, e : sum(map(lambda i: process(i, e), x[1:])),
           "*": lambda x, e : reduce(lambda a,b: a*b,

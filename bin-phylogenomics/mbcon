@@ -11,7 +11,7 @@ fi
 echo $THIN $NAME
 
 treecons --binary \
-    <(get-mb-trees $THIN < $NAME.output/infile.nex.run1.t && 
+    <(get-mb-trees $THIN < $NAME.output/infile.nex.run1.t &&
       get-mb-trees $THIN < $NAME.output/infile.nex.run2.t ) > $NAME.tree
 
 

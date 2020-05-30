@@ -72,7 +72,7 @@ def main(argv):
         if "RUNPAR_PREFIX" in os.environ:
             options.tmpprefix = os.environ["RUNPAR_PREFIX"]
         else:
-            error(("%s: you must specify tempdir with -t or with the " + 
+            error(("%s: you must specify tempdir with -t or with the " +
                    "environment variable RUNPAR_PREFIX") % \
                     os.path.basename(sys.argv[0]))
             return 2
@@ -86,7 +86,7 @@ def main(argv):
             if options.verbose:
                 print >>sys.stderr, "making temp directory '%s'" % tmpdir
             os.makedirs(tmpdir)
-        
+
 
     # clean all previous tempfiles, if requested
     if not options.no_pre_clean:
@@ -106,10 +106,10 @@ def main(argv):
     else:
         cmd = sys.stdin.read()
 
-    
+
     if not options.wait:
         options.submit = 'bsub -o "$FILE.bout" -E "touch \"$FILE.bout\""  '
-        
+
 
     # determine infiles
     infiles = []
@@ -155,7 +155,7 @@ def main(argv):
             make_cmd('( ' + cmd + ' ) > "$FILE.out"', FILE=fn)),
                         FILE=fn)
 
-        
+
         if options.verbose:
             print >>sys.stderr, cmd2
 
@@ -169,7 +169,7 @@ def main(argv):
         pid, code = os.waitpid(0, 0)
         if pid in pids:
             pids.remove(pid)
-        
+
 
 
     # run reduce command

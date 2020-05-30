@@ -11,11 +11,11 @@ from compbio import phylorun as phy
 
 def write_dist_matrix(mat, labels, out=sys.stdout):
     out = util.open_stream(out, "w")
-    
+
     out.write("%d\n" % len(mat))
-    
+
     for i in range(len(mat)):
-        out.write("%s  " % labels[i])        
+        out.write("%s  " % labels[i])
         for val in mat[i]:
             out.write("%10f " % val)
         out.write("\n")
@@ -29,20 +29,20 @@ conf, files = phy.parse_common_options(o)
 result = 0
 for fn in files:
     basename = phy.get_basename(fn, conf)
-    
+
     outdir = basename + conf.outputext
     phy.make_output_dir(outdir)
-    align = fasta.read_fasta(basename + conf.alignext)    
+    align = fasta.read_fasta(basename + conf.alignext)
 
     if len(align) <= 2:
         continue
 
-    
+
     # make temp files
     distfile = outdir + "/dist"
     treefile = basename + conf.treeext
-    
-    # find distances    
+
+    # find distances
     if conf.seqtype == "pep":
         labels = phylip.protdist(align, distfile, verbose=True)
     else:
@@ -53,8 +53,8 @@ for fn in files:
 
     if not conf.opttree:
         print "using usertree"
-        
-        usertree = treelib.read_tree(basename + conf.usertreeext)    
+
+        usertree = treelib.read_tree(basename + conf.usertreeext)
         tree = phylo.neighborjoin(distmat, labels, usertree=usertree)
         tree.write(treefile)
 
@@ -74,7 +74,7 @@ for fn in files:
         out = open("%s/time" % outdir, "w")
         out.write(str(util.toc()) + "\n")
         out.close()
-        
+
 
 
 sys.exit(result)

@@ -51,7 +51,7 @@ for treefile in args:
             tree.root.children[1].data["boot"] = 0.0
 
 
-        phylo.recon_root(tree, stree, gene2species, 
+        phylo.recon_root(tree, stree, gene2species,
                          rootby=conf.cost, newCopy=False)
 
         if len(trees) > 1:
@@ -59,8 +59,8 @@ for treefile in args:
             out.write("\n")
         else:
             tree.write(out)
-        
-    
+
+
     out.flush()
     os.fsync(out.fileno())
     out.close()

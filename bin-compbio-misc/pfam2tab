@@ -10,7 +10,7 @@ from compbio import pfam
 
 
 tab = tablelib.Table(headers=["gene", "domain", "start", "end", "evalue"],
-                     types={"gene":str, "domain":str, 
+                     types={"gene":str, "domain":str,
                             "start":int, "end":int, "evalue":float})
 tab.write_header()
 

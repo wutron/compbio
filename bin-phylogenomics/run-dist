@@ -11,11 +11,11 @@ from compbio import phylorun as phy
 
 def write_dist_matrix(mat, labels, out=sys.stdout):
     out = util.open_stream(out, "w")
-    
+
     out.write("%d\n" % len(mat))
-    
+
     for i in range(len(mat)):
-        out.write("%s  " % labels[i])        
+        out.write("%s  " % labels[i])
         for val in mat[i]:
             out.write("%10f " % val)
         out.write("\n")
@@ -34,14 +34,14 @@ conf, files = phy.parse_common_options(o)
 result = 0
 for fn in files:
     basename = phy.get_basename(fn, conf)
-    
+
     outdir = basename + conf.outputext
     phy.make_output_dir(outdir)
-    align = fasta.read_fasta(basename + conf.alignext)    
+    align = fasta.read_fasta(basename + conf.alignext)
 
     if len(align) <= 2:
         continue
-        
+
     # find distances
     distfile = basename + conf.distext
     if conf.dnds:
@@ -50,7 +50,7 @@ for fn in files:
 
         #if discard_labels:
         #    labels = labels_num
-        
+
         write_dist_matrix(dn[1], dn[0], out=distfile + ".dn")
         write_dist_matrix(ds[1], ds[0], out=distfile + ".ds")
 
@@ -58,16 +58,16 @@ for fn in files:
         if conf.seqtype == "pep":
             # peptide distance
             labels = phylip.protdist(align, distfile, verbose=conf.verbose)
-        
+
         else:
             # nucleotide distance
             labels = phylip.dnadist(align, distfile, verbose=conf.verbose)
-    
+
         labels_num, distmat = phylip.read_dist_matrix(distfile)
 
         if conf.discard_labels:
             labels = labels_num
-    
+
         write_dist_matrix(distmat, labels, distfile)
 
 
